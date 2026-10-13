@@ -124,13 +124,18 @@ const CONFIG={
   //           Кількість турелей будь-яка: heavy — великі турболазери, light — малі (зенітні), gen — генератор щита (одна точка)
   // shield  — форма щита: {mode:'hug', sx, sy, pad} оболонка по корпусу (sx/sy — розтяг уздовж/поперек, pad — відступ)
   //           {mode:'ellipse', rx, ry} еліпс (радіуси у частках довжини корабля) · {mode:'capsule', rx, ry} капсула. null = стандарт для форми
+  //           Для PNG-корабля щит і турелі за замовчуванням автоматичні (див. pngShield / pngTurrets нижче); власні координати turrets для PNG притягуються на непрозорі пікселі
   ships:[
-    {name:'Вартовий', callsign:'ВАРТОВИЙ-АКТУАЛ', squad:'ГРІМ',   color:'#5ec8ff', color2:'#d9f2ff', hull:'wedge',
-     turrets:null,   // напр. {heavy:[[-62,-30],[-62,30],[34,0]], light:[[-128,-22],[-40,-38],[80,-13],[-128,22],[-40,38]], gen:[-96,0]}
-     shield:null},   // напр. {mode:'ellipse', rx:1.2, ry:.55}
+    {name:'Вартовий', callsign:'ВАРТОВИЙ-АКТУАЛ', squad:'ГРІМ',   color:'#5ec8ff', color2:'#d9f2ff', hull:'wedge', turrets:null, shield:null},
     {name:'Багряний', callsign:'БАГРЯНИЙ-АКТУАЛ', squad:'ЯСТРУБ', color:'#ff5a4a', color2:'#ffd2c8', hull:'frigate', turrets:null, shield:null},
   ],
-  shipLength:400, world:{w:2600,h:1400},
+  // ЯКЩО Є PNG КОРАБЛЯ (assets/ship0.png, ship1.png) — усе підлаштовується під картинку автоматично:
+  //   щит іде за контуром PNG, турелі розставляються на корпусі (heavy по центру, light уздовж бортів, генератор на кормі), двигуни на кормі.
+  //   Дві змінні нижче керують щитом; turrets:'auto' можна замінити власними координатами, shield — своїм режимом.
+  pngShield:{pad:12, smooth:.5},   // pad — внутрішній відступ щита від пікселів корабля (у пікселях моделі, 0..40); smooth — плавність обтікання 0 (різко, по кожному виступу) .. 1 (м'яко)
+  pngTurrets:{heavy:3, light:5},   // скільки турелей розставляти автоматично на PNG-кораблі
+  shieldColor:'#9cd6ff',  // колір дефлекторних щитів (обом бортам)
+  shipLength:760, craftScale:2, world:{w:2600,h:1400},
   demoDuration:100,     // с — тривалість бою, якщо відкрити просто у браузері (у GMod — реальний прогрес, темп підлаштовується сам)
   volume:0.6, musicVolume:0.3,
   winner:null,          // null = випадково; 0 або 1
@@ -207,9 +212,9 @@ function flushRadio(dt){radioT-=dt;if(radioT>0||!radioQ.length)return;radioT=1.1
 /* ================= КЛАСИ МЛА ================= */
 // interceptor перехоплювач · bait штурмовик-приманка · flanker обхідний · gunship канонерка · shieldship щитоносець · ace елітний · bomber бомбер
 const CFG={interceptor:{v:205,turn:3.4,hp:5,range:260,cd:.22,dmg:.6},bait:{v:170,turn:2.8,hp:18,range:280,cd:.16,dmg:.6},flanker:{v:280,turn:4.6,hp:4,range:240,cd:.2,dmg:.6},
-  gunship:{v:150,turn:2.2,hp:22,range:300,cd:.4,dmg:1.6,sm:3.2},shieldship:{v:245,turn:4.2,hp:6,range:200,cd:.3,dmg:.4,bubble:34},ace:{v:245,turn:4.6,hp:8,range:300,cd:.14,dmg:1.1,sm:1.6},bomber:{v:108,turn:1.7,hp:10,cd:.8}};
+  gunship:{v:150,turn:2.2,hp:22,range:300,cd:.4,dmg:1.6,sm:3.2},shieldship:{v:245,turn:4.2,hp:6,range:200,cd:.3,dmg:.4,bubble:26},ace:{v:245,turn:4.6,hp:8,range:300,cd:.14,dmg:1.1,sm:1.6},bomber:{v:108,turn:1.7,hp:10,cd:.8}};
 const LABEL={interceptor:'Перехопл',bait:'Штурм',flanker:'Обхідні',gunship:'Канон',shieldship:'Щитон',ace:'Еліта',bomber:'Бомб'};
-const L=CONFIG.shipLength,K=L/300;
+const L=CONFIG.shipLength,K=L/300,CS=CONFIG.craftScale||1;
 const cruisers=[],crafts=[],bolts=[],parts=[],ripples=[],stars=[],frags=[];
 // ФОРМИ КОРПУСІВ. poly — силует (ніс +x), turrets — стандартні турелі, shield — стандартна форма щита, deco — внутрішні деталі
 const HULLS={
@@ -234,6 +239,33 @@ const HULLS={
     deco:g=>{g.fillStyle='#4c5666';g.fillRect(104,-40,34,80);g.strokeRect(104,-40,34,80);g.beginPath();g.moveTo(100,-6);g.lineTo(-110,-7);g.lineTo(-110,7);g.lineTo(100,6);g.closePath();g.fill();g.stroke();
       g.fillStyle='#5b6677';g.fillRect(-60,-9,30,18);g.strokeRect(-60,-9,30,18);}}
 };
+function fitToImage(c,o){ // контур PNG → корпус, щит, турелі, двигуни
+  let d;try{d=o.getContext('2d').getImageData(0,0,o.width,o.height).data;}catch(e){c.fitErr=true;console.warn('PNG корабля: браузер не дає читати пікселі (відкрито через file://). Відкрийте через http — тоді щит і турелі підлаштуються.');return;}
+  const w=o.width,h=o.height,A=(x,y)=>x<0||y<0||x>=w||y>=h?0:d[(y*w+x)*4+3];
+  const step=10,top=[],bot=[];let minX=w,maxX=0;
+  for(let x=0;x<w;x+=step){let t=-1,b=-1;for(let y=0;y<h;y++){if(A(x,y)>40){if(t<0)t=y;b=y;}}if(t>=0){top.push([x,t]);bot.push([x,b]);if(x<minX)minX=x;if(x>maxX)maxX=x;}}
+  if(top.length<4)return;
+  const loc=p=>[p[0]/2-c.cw/2,p[1]/2-c.ch/2];
+  let poly=top.map(loc).concat(bot.reverse().map(loc));c.hullL=poly;
+  const shp=c.shp;if(shp.mode==='image'){const pad=(shp.pad==null?14:shp.pad)*K/1.33,passes=Math.round(clamp(shp.smooth==null?.5:shp.smooth,0,1)*8);
+    let sp=poly.map(p=>{const l=Math.hypot(p[0],p[1])||1;return [p[0]+p[0]/l*pad,p[1]+p[1]/l*pad];});
+    for(let k=0;k<passes;k++)sp=sp.map((p,i)=>{const a=sp[(i+sp.length-1)%sp.length],b=sp[(i+1)%sp.length];return [(a[0]+p[0]*2+b[0])/4,(a[1]+p[1]*2+b[1])/4];});
+    c.shieldL=sp;}
+  // двигуни: корма картинки
+  const rx=minX;let ys=[];for(let y=0;y<h;y++)if(A(rx+6,y)>40)ys.push(y);
+  if(ys.length){const y0=ys[0]/2-c.ch/2,y1=ys[ys.length-1]/2-c.ch/2,ex=rx/2-c.cw/2;c.engines=[.2,.5,.8].map(f=>({x:ex,y:y0+(y1-y0)*f}));}
+  // турелі
+  if(c.autoTurrets){ // автоматична розстановка за контуром: великі — по центральній лінії, малі — уздовж бортів, генератор — на кормі
+    const cols=top.map((t,i)=>({x:t[0]/2-c.cw/2,t:t[1]/2-c.ch/2,b:bot[bot.length-1-i][1]/2-c.ch/2}));cols.sort((a,b)=>a.x-b.x);
+    const x0=cols[0].x,x1=cols[cols.length-1].x,len=x1-x0;const at=f=>{const x=x0+len*f;let best=cols[0];for(const q of cols)if(Math.abs(q.x-x)<Math.abs(best.x-x))best=q;return best;};
+    const nH=CONFIG.pngTurrets.heavy,nL=CONFIG.pngTurrets.light;c.subs.length=0;let n=1;
+    const add=(kind,x,y)=>c.subs.push({kind,n:kind==='gen'?'Г':n++,lx:x,ly:y,hp:1,max:1,cd:rand(0,2),alive:true,ang:0});
+    for(let i=0;i<nH;i++){const q=at(.3+.55*i/Math.max(1,nH-1));const hh=(q.b-q.t)/2,cy=(q.t+q.b)/2;add('heavy',q.x,nH>1&&i<nH-1?cy+(i%2?1:-1)*hh*.45:cy);}
+    for(let i=0;i<nL;i++){const q=at(.12+.78*i/Math.max(1,nL-1));const hh=(q.b-q.t)/2,cy=(q.t+q.b)/2;add('light',q.x,cy+(i%2?1:-1)*hh*.72);}
+    {const q=at(.2);add('gen',q.x,(q.t+q.b)/2);}}
+  for(const s of c.subs){let lx=s.lx,ly=s.ly,n=0;while(n++<80&&A(Math.round((lx+c.cw/2)*2),Math.round((ly+c.ch/2)*2))<=40){lx*=.94;ly*=.94;}s.lx=lx;s.ly=ly;}
+  c.fitted=true;
+}
 function shieldPoly(hd,shp){ // контур щита у локальних координатах (×K)
   if(shp.mode==='ellipse'||shp.mode==='capsule'){const pts=[],n=28,rx=(shp.rx||1.2)*150,ry=(shp.ry||.55)*150;
     for(let i=0;i<n;i++){const a=i/n*Math.PI*2;let x=Math.cos(a)*rx,y=Math.sin(a)*ry;
@@ -249,8 +281,10 @@ function mkCruiser(side){
     hangar:{},reserve:null,queue:[],launchCd:0,brainT:rand(0,1),canFire:false,fireRate:.6,subs:[],tactic:null,
     alive:true,dying:0,gone:false,bob:rand(0,7),smokeT:0,raidCd:0,finT:0,hullW:[],shieldW:[],canvas:null};
   let n=1;const add=(kind,p)=>c.subs.push({kind,n:kind==='gen'?'Г':n++,lx:p[0]*K,ly:p[1]*K,hp:1,max:1,cd:rand(0,2),alive:true,ang:0});
-  const tr=s.turrets||hd.turrets;(tr.heavy||[]).forEach(p=>add('heavy',p));(tr.light||[]).forEach(p=>add('light',p));if(tr.gen)add('gen',tr.gen);
-  c.shieldL=shieldPoly(hd,Object.assign({},hd.shield,s.shield||{}));
+  const tr=(s.turrets&&s.turrets!=='auto')?s.turrets:hd.turrets;(tr.heavy||[]).forEach(p=>add('heavy',p));(tr.light||[]).forEach(p=>add('light',p));if(tr.gen)add('gen',tr.gen);
+  c.shp=Object.assign({},hd.shield,s.shield||{});if(!s.shield||s.shield.mode==='image')c.shp=Object.assign({},hd.shield,CONFIG.pngShield,s.shield||{},{imgMode:true});
+  c.autoTurrets=!s.turrets||s.turrets==='auto';
+  c.shieldL=shieldPoly(hd,c.shp);
   c.hullL=hd.poly.map(p=>[p[0]*K,p[1]*K]);
   return c;
 }
@@ -307,6 +341,7 @@ function buildShipCanvas(c){
     g.strokeStyle='#1a1f28';c.hd.deco(g);
     g.strokeStyle=c.col;g.lineWidth=1.2;g.globalAlpha=.7;g.beginPath();g.moveTo(-100,-30);g.lineTo(60,-20);g.moveTo(-100,30);g.lineTo(60,20);g.stroke();g.globalAlpha=1;}
   c.canvas=o;c.cw=cw;c.ch=ch;c.imgUsed=im.ok;
+  if(im.ok){if(c.shp.imgMode){c.shp.mode='image';}fitToImage(c,o);}
 }
 function fragmentShip(c){const nx=9,ny=3,pw=c.cw/nx,ph=c.ch/ny;
   for(let i=0;i<nx;i++)for(let j=0;j<ny;j++){if(Math.random()<.12)continue;const lx=(i+.5)*pw-c.cw/2,ly=(j+.5)*ph-c.ch/2;const a=Math.atan2(ly,lx)+rand(-.6,.6),s=rand(25,110),life=rand(7,11);
@@ -563,10 +598,10 @@ function updCraft(cr,i,dt){
 }
 function separate(dt){
   for(let i=0;i<crafts.length;i++){const a=crafts[i];if(a.flee)continue;for(let j=i+1;j<crafts.length;j++){const b=crafts[j];if(b.flee)continue;
-    const dx=b.x-a.x,dy=b.y-a.y;if(Math.abs(dx)>46||Math.abs(dy)>46)continue;const d=Math.hypot(dx,dy)||.01;
-    if(d<12){a.hp-=2.5;b.hp-=2.5;boom((a.x+b.x)/2,(a.y+b.y)/2,6,1.2,'#fff');Snd.play('explosion',.2,a.x);const px=dx/d*8,py=dy/d*8;a.x-=px;a.y-=py;b.x+=px;b.y+=py;
+    const SD=46*(.5+CS*.5),CD=12*(.5+CS*.5);const dx=b.x-a.x,dy=b.y-a.y;if(Math.abs(dx)>SD||Math.abs(dy)>SD)continue;const d=Math.hypot(dx,dy)||.01;
+    if(d<CD){a.hp-=2.5;b.hp-=2.5;boom((a.x+b.x)/2,(a.y+b.y)/2,6,1.2,'#fff');Snd.play('explosion',.2,a.x);const px=dx/d*8,py=dy/d*8;a.x-=px;a.y-=py;b.x+=px;b.y+=py;
       if(a.hp<=0){killCraft(a,i);i--;break;}if(b.hp<=0){killCraft(b,j);j--;}continue;}
-    if(d<46){const f=(46-d)/46*90*dt,px=dx/d*f,py=dy/d*f;a.x-=px;a.y-=py;b.x+=px;b.y+=py;const ang=Math.atan2(dy,dx);a.a+=clamp(wrap(ang+Math.PI-a.a),-1,1)*dt*1.5*(46-d)/46;b.a+=clamp(wrap(ang-b.a),-1,1)*dt*1.5*(46-d)/46;}}}}
+    if(d<SD){const f=(SD-d)/SD*90*dt,px=dx/d*f,py=dy/d*f;a.x-=px;a.y-=py;b.x+=px;b.y+=py;const ang=Math.atan2(dy,dx);a.a+=clamp(wrap(ang+Math.PI-a.a),-1,1)*dt*1.5*(SD-d)/SD;b.a+=clamp(wrap(ang-b.a),-1,1)*dt*1.5*(SD-d)/SD;}}}}
 function killCraft(k,idx){boom(k.x,k.y,k.type==='bomber'?14:9,k.type==='bomber'?3:2,Math.random()<.5?'#ffb060':cruisers[k.side].col);Snd.play('explosion',k.type==='bomber'?.5:.3,k.x);crafts.splice(idx,1);
   if(Math.random()<.18)radio(SQ(cruisers[k.side]),pick(['Втратили борт! Катапульта не спрацювала…','Ми його втратили. Продовжуємо.','Збитий! Повторюю, збитий!']),cruisers[k.side].col2);}
 
@@ -591,7 +626,7 @@ function updBolts(dt){
         if(s){damageSub(en,s,SUBDMG[b.kind][s.kind]*(b.sm||1)*DM);hit=true;}
         if(b.kind==='turbo'&&inHull(en,b.x,b.y)){en.hull-=b.cdmg;boom(b.x,b.y,12,2.8,'#ffb060');Snd.play('explosion',.35,b.x);shake=Math.max(shake,2);hit=true;}}
     }
-    if(!hit){const r=b.kind==='turbo'?7:b.kind==='light'?7:9;
+    if(!hit){const r=(b.kind==='turbo'?7:b.kind==='light'?7:9)*(.5+CS*.5);
       for(let j=crafts.length-1;j>=0;j--){const k=crafts[j];if(k.side===b.side)continue;
         if(Math.abs(k.x-b.x)<r&&Math.abs(k.y-b.y)<r){k.hp-=b.kind==='turbo'?20:b.dmg;hit=true;if(k.hp<=0)killCraft(k,j);else parts.push({x:k.x,y:k.y,vx:0,vy:0,life:.12,max:.12,r:4,col:'#fff'});break;}}}
     if(hit)bolts.splice(i,1);}
@@ -628,7 +663,7 @@ function updHUD(dt){hudT-=dt;if(hudT>0)return;hudT=.15;
   cruisers.forEach((c,i)=>{const h=Math.round(c.hull*100),s=Math.round(c.shield*100);
     document.getElementById('h'+i).textContent=h+'%';document.getElementById('hb'+i).style.width=h+'%';
     document.getElementById('s'+i).textContent=c.shieldDown?'ВТРАЧЕНО':s+'%';document.getElementById('sb'+i).style.width=s+'%';
-    document.getElementById('ros'+i).innerHTML=rosHTML(c);document.getElementById('tur'+i).innerHTML=turHTML(c);});
+    document.getElementById('ros'+i).innerHTML=rosHTML(c)+(c.fitErr?'<span style="color:#ffe81f">PNG: відкрийте через http для автопідгонки</span>':'');document.getElementById('tur'+i).innerHTML=turHTML(c);});
   const p=Math.round(battle.dispReal*100);document.getElementById('pct').textContent=p+'%';document.getElementById('pb').style.width=p+'%';
   document.getElementById('st').textContent=load.status+(load.file?' — '+load.file:'');
   if(Snd.mus)Snd.mus.tick();
@@ -641,7 +676,7 @@ function drawCruiser(c){
   if(c.gone)return;
   if(!c.canvas||(!c.imgUsed&&IMG.ship[c.side].ok))buildShipCanvas(c);
   ctx.save();ctx.translate(c.x,c.y);ctx.scale(c.dir,1);
-  [-18,0,18].forEach(y=>{const e=ctx.createRadialGradient(-150*K,y*K,0,-150*K,y*K,18*K);e.addColorStop(0,'#fff');e.addColorStop(.3,c.col);e.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=e;ctx.beginPath();ctx.arc(-152*K-Math.random()*3,y*K,15*K,0,6.29);ctx.fill();});
+  (c.engines||[-18,0,18].map(y=>({x:-150*K,y:y*K}))).forEach(en=>{const e=ctx.createRadialGradient(en.x,en.y,0,en.x,en.y,18*K);e.addColorStop(0,'#fff');e.addColorStop(.3,c.col);e.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=e;ctx.beginPath();ctx.arc(en.x-2*K-Math.random()*3,en.y,14*K,0,6.29);ctx.fill();});
   ctx.drawImage(c.canvas,-c.cw/2,-c.ch/2,c.cw,c.ch);
   if(c.hull<.75){ctx.fillStyle='rgba(20,10,5,'+(.75-c.hull)+')';for(let k=0;k<7;k++){const s=Math.sin(k*7.3+c.side*3)*150*K,t=Math.cos(k*5.1+c.side)*22*K;ctx.beginPath();ctx.arc(s,t,(8+k*2)*K,0,6.29);ctx.fill();}}
   ctx.restore();
@@ -656,15 +691,15 @@ function drawCruiser(c){
       if(s.alive){ctx.rotate(s.ang||(c.dir>0?0:Math.PI));ctx.fillStyle='#6a788c';ctx.fillRect(-1*K,-2.4*K,10*K,1.8*K);ctx.fillRect(-1*K,.6*K,10*K,1.8*K);ctx.fillStyle=rgba(c.col,.8);ctx.beginPath();ctx.arc(0,0,1.6*K,0,6.29);ctx.fill();}
       else{ctx.fillStyle=rgba('#ff6a30',.3+.3*Math.sin(T*8+s.ly));ctx.beginPath();ctx.arc(0,0,r*.4,0,6.29);ctx.fill();}}
     ctx.restore();}
-  if(c.alive&&!c.shieldDown){const r=c.shield;ctx.save();pathPoly(c.shieldW);
-    ctx.fillStyle=rgba(c.col,.045+r*.05);ctx.fill();
-    ctx.shadowColor=c.col;ctx.shadowBlur=18+r*14;ctx.strokeStyle=rgba(c.col,.35+r*.5);ctx.lineWidth=2.2+r*1.5;ctx.stroke();
-    ctx.shadowBlur=0;ctx.strokeStyle=rgba('#ffffff',.25+r*.3);ctx.lineWidth=.8;ctx.stroke();
-    ctx.clip();for(let i=ripples.length-1;i>=0;i--){const q=ripples[i];if(q.c!==c)continue;const rr=(20+q.t*160)*q.s,g=ctx.createRadialGradient(q.x,q.y,0,q.x,q.y,rr);g.addColorStop(0,rgba('#ffffff',(1-q.t*2)*.6));g.addColorStop(.6,rgba(c.col,(1-q.t*2)*.5));g.addColorStop(1,rgba(c.col,0));ctx.fillStyle=g;ctx.beginPath();ctx.arc(q.x,q.y,rr,0,6.29);ctx.fill();}
+  if(c.alive&&!c.shieldDown){const r=c.shield,SC=CONFIG.shieldColor||c.col;ctx.save();pathPoly(c.shieldW);
+    ctx.fillStyle=rgba(SC,.025+r*.03);ctx.fill();
+    ctx.shadowColor=SC;ctx.shadowBlur=14+r*10;ctx.strokeStyle=rgba(SC,.22+r*.3);ctx.lineWidth=2+r*1.2;ctx.stroke();
+    ctx.shadowBlur=0;ctx.strokeStyle=rgba('#ffffff',.15+r*.2);ctx.lineWidth=.8;ctx.stroke();
+    ctx.clip();for(let i=ripples.length-1;i>=0;i--){const q=ripples[i];if(q.c!==c)continue;const rr=(20+q.t*160)*q.s,g=ctx.createRadialGradient(q.x,q.y,0,q.x,q.y,rr);g.addColorStop(0,rgba('#ffffff',(1-q.t*2)*.6));g.addColorStop(.6,rgba(SC,(1-q.t*2)*.5));g.addColorStop(1,rgba(SC,0));ctx.fillStyle=g;ctx.beginPath();ctx.arc(q.x,q.y,rr,0,6.29);ctx.fill();}
     ctx.restore();}
 }
-function drawCraft(k){const c=cruisers[k.side],im=craftImg(k.side,k.type);ctx.save();ctx.translate(k.x,k.y);
-  if(k.type==='shieldship'&&k.bub>.15){ctx.strokeStyle=rgba(c.col,.25+k.bub*.5);ctx.lineWidth=1.5;ctx.shadowColor=c.col;ctx.shadowBlur=10;ctx.beginPath();ctx.arc(0,0,CFG.shieldship.bubble,0,6.29);ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle=rgba(c.col,.06*k.bub);ctx.fill();}
+function drawCraft(k){const c=cruisers[k.side],im=craftImg(k.side,k.type);ctx.save();ctx.translate(k.x,k.y);ctx.scale(CS,CS);
+  if(k.type==='shieldship'&&k.bub>.15){const SC=CONFIG.shieldColor||c.col;ctx.strokeStyle=rgba(SC,.25+k.bub*.5);ctx.lineWidth=1.2;ctx.shadowColor=SC;ctx.shadowBlur=8;ctx.beginPath();ctx.arc(0,0,CFG.shieldship.bubble/CS,0,6.29);ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle=rgba(SC,.06*k.bub);ctx.fill();}
   ctx.rotate(k.a);
   if(im){const sz=k.type==='bomber'?22:k.type==='bait'?19:k.type==='gunship'?24:16;const r=sz/im.naturalWidth;ctx.drawImage(im,-sz/2,-im.naturalHeight*r/2,sz,im.naturalHeight*r);}
   else{ctx.fillStyle=k.type==='bomber'?'#9aa3b4':k.type==='bait'?'#b8c0cc':k.type==='gunship'?'#8c95a6':k.type==='ace'?'#fff2c0':'#d6dde8';ctx.strokeStyle=k.type==='ace'?'#ffd36a':c.col;ctx.lineWidth=1;ctx.beginPath();
