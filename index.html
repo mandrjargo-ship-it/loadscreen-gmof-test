@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Завантаження</title>
+<!-- VERSION 11 — якщо на сервері не видно змін, додайте ?v=11 до sv_loadingurl (кеш) -->
 <style>
 :root{--bg:#02040c;--blue:#5ec8ff;--red:#ff5a4a;--gold:#ffe81f;--txt:#d6ecff;--dim:#6f93b3}
 html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:Bahnschrift,'Arial Narrow','Segoe UI',Arial,sans-serif;color:var(--txt);user-select:none;text-transform:uppercase}
@@ -108,12 +109,14 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:
      assets/background.png                         — фон
      assets/interceptor.png bait.png flanker.png gunship.png shieldship.png ace.png bomber.png — МЛА для обох бортів
      assets/interceptor_1.png ... (будь-який клас + _0 або _1)  — окрема картинка тільки для цього борту
+   Турелі: assets/turret_heavy.png turret_light.png turret_gen.png (+ turret_heavy_dead.png … для знищених) — ствол дивиться вправо
    Звуки (mp3/ogg/wav): assets/turbolaser.mp3 light.mp3 blaster.mp3 shieldHit.mp3 shieldDown.mp3 torpedo.mp3
      explosion.mp3 bigExplosion.mp3 subDestroyed.mp3 radio.mp3 launch.mp3   і   assets/music.mp3 — фонова музика (loop)
    ===================================================================== */
 const ASSETS={dir:'assets/',
   images:{ship0:'ship0.png',ship1:'ship1.png',background:'background.png'},
   craftImages:['interceptor','bait','flanker','gunship','shieldship','ace','bomber'],
+  turretImages:['turret_heavy','turret_light','turret_gen','turret_heavy_dead','turret_light_dead','turret_gen_dead'], // assets/turret_heavy.png … (ствол дивиться вправо; *_dead — знищена, необов'язково)
   sounds:{turbolaser:'turbolaser.mp3',light:'light.mp3',blaster:'blaster.mp3',shieldHit:'shieldHit.mp3',shieldDown:'shieldDown.mp3',torpedo:'torpedo.mp3',explosion:'explosion.mp3',bigExplosion:'bigExplosion.mp3',subDestroyed:'subDestroyed.mp3',radio:'radio.mp3',launch:'launch.mp3'},
   music:'music.mp3',
   disable:[]            // напр. ['radio','light'] — повністю вимкнути ці звуки
@@ -132,10 +135,12 @@ const CONFIG={
   // ЯКЩО Є PNG КОРАБЛЯ (assets/ship0.png, ship1.png) — усе підлаштовується під картинку автоматично:
   //   щит іде за контуром PNG, турелі розставляються на корпусі (heavy по центру, light уздовж бортів, генератор на кормі), двигуни на кормі.
   //   Дві змінні нижче керують щитом; turrets:'auto' можна замінити власними координатами, shield — своїм режимом.
-  pngShield:{pad:12, smooth:.5},   // pad — внутрішній відступ щита від пікселів корабля (у пікселях моделі, 0..40); smooth — плавність обтікання 0 (різко, по кожному виступу) .. 1 (м'яко)
-  pngTurrets:{heavy:3, light:5},   // скільки турелей розставляти автоматично на PNG-кораблі
+  pngShield:{pad:22, smooth:.6},   // pad — відступ щита від пікселів корабля (у пікселях моделі, 0..60); smooth — плавність обтікання 0 (різко, по кожному виступу) .. 1 (дуже м'яко)
+  pngTurrets:{heavy:3, light:6},   // скільки турелей розставляти автоматично на PNG-кораблі (симетрично; непарна велика — на центральній лінії)
+  turretSize:{heavy:12, light:7, gen:14},   // розмір турелей у пікселях моделі (діаметр)
+  maxEngines:6,                    // двигуни ставляться на крайню кормову точку PNG; кількість — за шириною корми, до цього максимуму
   shieldColor:'#9cd6ff',  // колір дефлекторних щитів (обом бортам)
-  shipLength:760, craftScale:2, world:{w:2600,h:1400},
+  shipLength:760, craftScale:2, world:{w:3200,h:1600},
   demoDuration:100,     // с — тривалість бою, якщо відкрити просто у браузері (у GMod — реальний прогрес, темп підлаштовується сам)
   volume:0.6, musicVolume:0.3,
   winner:null,          // null = випадково; 0 або 1
@@ -153,10 +158,15 @@ const rgba=(hex,a)=>`rgba(${parseInt(hex.slice(1,3),16)},${parseInt(hex.slice(3,
 const pip=(poly,x,y)=>{let r=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])r=!r;}return r;};
 const load={gmod:false,total:0,needed:0,progress:0,disp:0,status:'Підключення',file:'',t0:null,p0:0,est:CONFIG.demoDuration,scaled:false};
 let DM=1; // множник урону під темп завантаження
+const DEBUG=/[?&]debug/.test(location.search); // loading.html?debug — показати контури й стан підгонки PNG
 let run=0,runT=0,warp=-1,resultT=0,prevTactics=[null,null];const battle={p:0,virt:0,stallT:0,lastReal:-1,D:100,dispReal:0};
-function loadImg(name){const i=new Image();i.ok=false;i.onload=()=>{i.ok=i.naturalWidth>0;};i.onerror=()=>{i.ok=false;};i.src=ASSETS.dir+name;return i;}
+function loadImg(name){const i=new Image();i.ok=false;const url=ASSETS.dir+name;
+  const plain=()=>{i.onload=()=>{i.ok=i.naturalWidth>0;};i.onerror=()=>{i.ok=false;};i.src=url;};
+  if(window.fetch&&location.protocol!=='file:'){fetch(url,{cache:'no-cache'}).then(r=>{if(!r.ok)throw 0;return r.blob();}).then(b=>{i.onload=()=>{i.ok=i.naturalWidth>0;i.blob=true;};i.onerror=()=>{i.ok=false;};i.src=URL.createObjectURL(b);}).catch(()=>plain());}
+  else plain();return i;}
 const IMG={bg:loadImg(ASSETS.images.background),ship:[loadImg(ASSETS.images.ship0),loadImg(ASSETS.images.ship1)],craft:[{},{}]};
 ASSETS.craftImages.forEach(k=>{const g=loadImg(k+'.png');[0,1].forEach(s=>{const o=loadImg(k+'_'+s+'.png');IMG.craft[s][k]={g,o};});});
+IMG.turret={};ASSETS.turretImages.forEach(k=>{IMG.turret[k.replace('turret_','')]=loadImg(k+'.png');});
 const craftImg=(side,k)=>{const e=IMG.craft[side][k];if(!e)return null;return e.o.ok?e.o:e.g.ok?e.g:null;};
 
 /* ================= ЗВУК + МУЗИКА ================= */
@@ -239,31 +249,43 @@ const HULLS={
     deco:g=>{g.fillStyle='#4c5666';g.fillRect(104,-40,34,80);g.strokeRect(104,-40,34,80);g.beginPath();g.moveTo(100,-6);g.lineTo(-110,-7);g.lineTo(-110,7);g.lineTo(100,6);g.closePath();g.fill();g.stroke();
       g.fillStyle='#5b6677';g.fillRect(-60,-9,30,18);g.strokeRect(-60,-9,30,18);}}
 };
-function fitToImage(c,o){ // контур PNG → корпус, щит, турелі, двигуни
+function fitToImage(c,o){ // контур PNG → корпус, щит (огинаюча з відступом і згладжуванням), симетричні турелі, двигуни на кормі
   let d;try{d=o.getContext('2d').getImageData(0,0,o.width,o.height).data;}catch(e){c.fitErr=true;console.warn('PNG корабля: браузер не дає читати пікселі (відкрито через file://). Відкрийте через http — тоді щит і турелі підлаштуються.');return;}
   const w=o.width,h=o.height,A=(x,y)=>x<0||y<0||x>=w||y>=h?0:d[(y*w+x)*4+3];
-  const step=10,top=[],bot=[];let minX=w,maxX=0;
-  for(let x=0;x<w;x+=step){let t=-1,b=-1;for(let y=0;y<h;y++){if(A(x,y)>40){if(t<0)t=y;b=y;}}if(t>=0){top.push([x,t]);bot.push([x,b]);if(x<minX)minX=x;if(x>maxX)maxX=x;}}
-  if(top.length<4)return;
-  const loc=p=>[p[0]/2-c.cw/2,p[1]/2-c.ch/2];
-  let poly=top.map(loc).concat(bot.reverse().map(loc));c.hullL=poly;
-  const shp=c.shp;if(shp.mode==='image'){const pad=(shp.pad==null?14:shp.pad)*K/1.33,passes=Math.round(clamp(shp.smooth==null?.5:shp.smooth,0,1)*8);
-    let sp=poly.map(p=>{const l=Math.hypot(p[0],p[1])||1;return [p[0]+p[0]/l*pad,p[1]+p[1]/l*pad];});
-    for(let k=0;k<passes;k++)sp=sp.map((p,i)=>{const a=sp[(i+sp.length-1)%sp.length],b=sp[(i+1)%sp.length];return [(a[0]+p[0]*2+b[0])/4,(a[1]+p[1]*2+b[1])/4];});
-    c.shieldL=sp;}
-  // двигуни: корма картинки
-  const rx=minX;let ys=[];for(let y=0;y<h;y++)if(A(rx+6,y)>40)ys.push(y);
-  if(ys.length){const y0=ys[0]/2-c.ch/2,y1=ys[ys.length-1]/2-c.ch/2,ex=rx/2-c.cw/2;c.engines=[.2,.5,.8].map(f=>({x:ex,y:y0+(y1-y0)*f}));}
-  // турелі
-  if(c.autoTurrets){ // автоматична розстановка за контуром: великі — по центральній лінії, малі — уздовж бортів, генератор — на кормі
-    const cols=top.map((t,i)=>({x:t[0]/2-c.cw/2,t:t[1]/2-c.ch/2,b:bot[bot.length-1-i][1]/2-c.ch/2}));cols.sort((a,b)=>a.x-b.x);
-    const x0=cols[0].x,x1=cols[cols.length-1].x,len=x1-x0;const at=f=>{const x=x0+len*f;let best=cols[0];for(const q of cols)if(Math.abs(q.x-x)<Math.abs(best.x-x))best=q;return best;};
-    const nH=CONFIG.pngTurrets.heavy,nL=CONFIG.pngTurrets.light;c.subs.length=0;let n=1;
+  const step=6,cols=[];let minX=w,maxX=0;
+  for(let x=0;x<w;x+=step){let t=-1,b=-1;for(let y=0;y<h;y++){if(A(x,y)>40){if(t<0)t=y;b=y;}}if(t>=0){cols.push({x,t,b});if(x<minX)minX=x;if(x>maxX)maxX=x;}}
+  if(cols.length<4)return;
+  const lx=v=>v/2-c.cw/2,ly=v=>v/2-c.ch/2;
+  c.hullL=cols.map(q=>[lx(q.x),ly(q.t)]).concat(cols.slice().reverse().map(q=>[lx(q.x),ly(q.b)]));
+  // ЩИТ: огинаюча (мінімум/максимум у вікні) + відступ + згладжування ковзним середнім; вікно залежить від smooth
+  const shp=c.shp;if(shp.mode==='image'){const pad=(shp.pad==null?22:shp.pad)*K,sm=clamp(shp.smooth==null?.6:shp.smooth,0,1),wN=Math.round(2+sm*28);
+    const n=cols.length;let top=cols.map(q=>ly(q.t)),bot=cols.map(q=>ly(q.b));
+    const env=(arr,f)=>arr.map((v,i)=>{let r=v;for(let j=Math.max(0,i-wN);j<=Math.min(n-1,i+wN);j++)r=f(r,arr[j]);return r;});
+    top=env(top,Math.min).map(v=>v-pad);bot=env(bot,Math.max).map(v=>v+pad);
+    const avg=arr=>arr.map((v,i)=>{let sum=0,k=0;for(let j=Math.max(0,i-wN);j<=Math.min(n-1,i+wN);j++){sum+=arr[j];k++;}return sum/k;});
+    for(let k=0;k<2;k++){top=avg(top);bot=avg(bot);}
+    const xs=cols.map(q=>lx(q.x)),cy0=(top[0]+bot[0])/2,cy1=(top[n-1]+bot[n-1])/2;
+    const poly=[[xs[0]-pad*.9,cy0]];for(let i=0;i<n;i++)poly.push([xs[i],top[i]]);poly.push([xs[n-1]+pad*.9,cy1]);for(let i=n-1;i>=0;i--)poly.push([xs[i],bot[i]]);
+    c.shieldL=poly;}
+  // ДВИГУНИ: тільки крайня кормова точка. Беремо колонки в межах 8 px від корми, збираємо суцільні вертикальні відрізки
+  {const segs=[];for(let x=minX;x<=Math.min(w-1,minX+8);x++){let run=null;for(let y=0;y<=h;y++){const on=y<h&&A(x,y)>40;if(on&&!run)run={t:y,b:y};else if(on)run.b=y;else if(run){segs.push(run);run=null;}}}
+    const merged=[];segs.sort((a,b)=>a.t-b.t).forEach(sg=>{const m=merged[merged.length-1];if(m&&sg.t<=m.b+4)m.b=Math.max(m.b,sg.b);else merged.push({...sg});});
+    const ex=lx(minX),eng=[],maxE=CONFIG.maxEngines||6;const tot=merged.reduce((a,m)=>a+(m.b-m.t),0);
+    for(const m of merged){const tL=ly(m.t),bL=ly(m.b),H=bL-tL;let n=Math.max(1,Math.round(H/(12*K)));n=Math.min(n,Math.max(1,Math.round(maxE*(m.b-m.t)/Math.max(1,tot))));
+      for(let i=0;i<n;i++){const f=(i+1)/(n+1);eng.push({x:ex,y:tL+H*f,r:clamp(H/(n+1)*.45,2.5*K,8*K)});}}
+    c.engines=eng.slice(0,maxE);}
+  // ТУРЕЛІ: симетрично відносно осі корабля
+  const colAt=f=>{const x=minX+(maxX-minX)*f;let best=cols[0];for(const q of cols)if(Math.abs(q.x-x)<Math.abs(best.x-x))best=q;return best;};
+  const onPix=(x,y)=>A(Math.round((x+c.cw/2)*2),Math.round((y+c.ch/2)*2))>40;
+  const symPair=(q,frac)=>{const cy=ly((q.t+q.b)/2),hh=ly(q.b)-cy;let off=hh*frac;while(off>2&&!(onPix(lx(q.x),cy-off)&&onPix(lx(q.x),cy+off)))off-=2;return {x:lx(q.x),cy,off};};
+  if(c.autoTurrets){const nH=CONFIG.pngTurrets.heavy,nL=CONFIG.pngTurrets.light;c.subs.length=0;let n=1;
     const add=(kind,x,y)=>c.subs.push({kind,n:kind==='gen'?'Г':n++,lx:x,ly:y,hp:1,max:1,cd:rand(0,2),alive:true,ang:0});
-    for(let i=0;i<nH;i++){const q=at(.3+.55*i/Math.max(1,nH-1));const hh=(q.b-q.t)/2,cy=(q.t+q.b)/2;add('heavy',q.x,nH>1&&i<nH-1?cy+(i%2?1:-1)*hh*.45:cy);}
-    for(let i=0;i<nL;i++){const q=at(.12+.78*i/Math.max(1,nL-1));const hh=(q.b-q.t)/2,cy=(q.t+q.b)/2;add('light',q.x,cy+(i%2?1:-1)*hh*.72);}
-    {const q=at(.2);add('gen',q.x,(q.t+q.b)/2);}}
-  for(const s of c.subs){let lx=s.lx,ly=s.ly,n=0;while(n++<80&&A(Math.round((lx+c.cw/2)*2),Math.round((ly+c.ch/2)*2))<=40){lx*=.94;ly*=.94;}s.lx=lx;s.ly=ly;}
+    const pairsH=Math.floor(nH/2),oddH=nH%2;for(let i=0;i<pairsH;i++){const p=symPair(colAt(.35+.4*i/Math.max(1,pairsH-1)),.45);add('heavy',p.x,p.cy-p.off);add('heavy',p.x,p.cy+p.off);}
+    if(oddH){const q=colAt(.8);add('heavy',lx(q.x),ly((q.t+q.b)/2));}
+    const pairsL=Math.floor(nL/2);for(let i=0;i<pairsL;i++){const p=symPair(colAt(.12+.76*(i+.5)/pairsL),.78);add('light',p.x,p.cy-p.off);add('light',p.x,p.cy+p.off);}
+    if(nL%2){const q=colAt(.95);add('light',lx(q.x),ly((q.t+q.b)/2));}
+    {const q=colAt(.22);add('gen',lx(q.x),ly((q.t+q.b)/2));}}
+  else for(const s of c.subs){let n=0;while(n++<80&&!onPix(s.lx,s.ly)){s.lx*=.94;s.ly*=.94;}}
   c.fitted=true;
 }
 function shieldPoly(hd,shp){ // контур щита у локальних координатах (×K)
@@ -663,9 +685,9 @@ function updHUD(dt){hudT-=dt;if(hudT>0)return;hudT=.15;
   cruisers.forEach((c,i)=>{const h=Math.round(c.hull*100),s=Math.round(c.shield*100);
     document.getElementById('h'+i).textContent=h+'%';document.getElementById('hb'+i).style.width=h+'%';
     document.getElementById('s'+i).textContent=c.shieldDown?'ВТРАЧЕНО':s+'%';document.getElementById('sb'+i).style.width=s+'%';
-    document.getElementById('ros'+i).innerHTML=rosHTML(c)+(c.fitErr?'<span style="color:#ffe81f">PNG: відкрийте через http для автопідгонки</span>':'');document.getElementById('tur'+i).innerHTML=turHTML(c);});
+    document.getElementById('ros'+i).innerHTML=rosHTML(c)+(c.fitErr?'<span style="color:#ffe81f">'+c.fitErr+'</span>':'');document.getElementById('tur'+i).innerHTML=turHTML(c);});
   const p=Math.round(battle.dispReal*100);document.getElementById('pct').textContent=p+'%';document.getElementById('pb').style.width=p+'%';
-  document.getElementById('st').textContent=load.status+(load.file?' — '+load.file:'');
+  document.getElementById('st').textContent=load.status+(load.file?' — '+load.file:'')+' · v11';
   if(Snd.mus)Snd.mus.tick();
 }
 
@@ -676,19 +698,24 @@ function drawCruiser(c){
   if(c.gone)return;
   if(!c.canvas||(!c.imgUsed&&IMG.ship[c.side].ok))buildShipCanvas(c);
   ctx.save();ctx.translate(c.x,c.y);ctx.scale(c.dir,1);
-  (c.engines||[-18,0,18].map(y=>({x:-150*K,y:y*K}))).forEach(en=>{const e=ctx.createRadialGradient(en.x,en.y,0,en.x,en.y,18*K);e.addColorStop(0,'#fff');e.addColorStop(.3,c.col);e.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=e;ctx.beginPath();ctx.arc(en.x-2*K-Math.random()*3,en.y,14*K,0,6.29);ctx.fill();});
+  (c.engines||[-18,0,18].map(y=>({x:-150*K,y:y*K,r:7*K}))).forEach(en=>{const r=en.r||7*K;ctx.save();ctx.translate(en.x-r*.4-Math.random()*2,en.y);ctx.scale(1.7,1);const e=ctx.createRadialGradient(0,0,0,0,0,r*1.6);e.addColorStop(0,'#fff');e.addColorStop(.3,c.col);e.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=e;ctx.beginPath();ctx.arc(0,0,r*1.6,0,6.29);ctx.fill();ctx.restore();});
   ctx.drawImage(c.canvas,-c.cw/2,-c.ch/2,c.cw,c.ch);
   if(c.hull<.75){ctx.fillStyle='rgba(20,10,5,'+(.75-c.hull)+')';for(let k=0;k<7;k++){const s=Math.sin(k*7.3+c.side*3)*150*K,t=Math.cos(k*5.1+c.side)*22*K;ctx.beginPath();ctx.arc(s,t,(8+k*2)*K,0,6.29);ctx.fill();}}
   ctx.restore();
-  for(const s of c.subs){const p=subPos(c,s);ctx.save();ctx.translate(p.x,p.y);
-    if(s.kind==='gen'){const r=11*K;if(s.alive){const g=ctx.createRadialGradient(0,0,0,0,0,r*1.6);g.addColorStop(0,'#fff');g.addColorStop(.3,rgba(c.col,.95));g.addColorStop(1,rgba(c.col,0));ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r*1.6,0,6.29);ctx.fill();
-        ctx.strokeStyle='#0d1420';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,r*.6,0,6.29);ctx.stroke();ctx.strokeStyle=rgba(c.col,.9);ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,0,r*.95+Math.sin(T*6)*1.5,0,6.29);ctx.stroke();}
+  const TS=CONFIG.turretSize||{heavy:12,light:7,gen:14};
+  for(const s of c.subs){const p=subPos(c,s);ctx.save();ctx.translate(p.x,p.y);const D=TS[s.kind]*K,r=D/2;
+    const ang=s.kind==='gen'?0:(s.ang||(c.dir>0?0:Math.PI));const im=IMG.turret[s.kind],imd=IMG.turret[s.kind+'_dead'];
+    if(s.alive&&im&&im.ok){ctx.rotate(ang);const rr=D/Math.max(im.naturalWidth,im.naturalHeight);ctx.drawImage(im,-im.naturalWidth*rr/2,-im.naturalHeight*rr/2,im.naturalWidth*rr,im.naturalHeight*rr);
+      if(s.kind==='gen'){ctx.globalAlpha=.5+.3*Math.sin(T*6);ctx.strokeStyle=rgba(c.col,.9);ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,0,r*1.15,0,6.29);ctx.stroke();}}
+    else if(!s.alive&&imd&&imd.ok){ctx.rotate(ang);const rr=D/Math.max(imd.naturalWidth,imd.naturalHeight);ctx.drawImage(imd,-imd.naturalWidth*rr/2,-imd.naturalHeight*rr/2,imd.naturalWidth*rr,imd.naturalHeight*rr);}
+    else if(s.kind==='gen'){if(s.alive){const g=ctx.createRadialGradient(0,0,0,0,0,r*1.6);g.addColorStop(0,'#fff');g.addColorStop(.3,rgba(c.col,.95));g.addColorStop(1,rgba(c.col,0));ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r*1.6,0,6.29);ctx.fill();
+        ctx.strokeStyle='#0d1420';ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,0,r*.6,0,6.29);ctx.stroke();ctx.strokeStyle=rgba(c.col,.9);ctx.beginPath();ctx.arc(0,0,r*.95+Math.sin(T*6)*1,0,6.29);ctx.stroke();}
       else{ctx.fillStyle='#1c1410';ctx.beginPath();ctx.arc(0,0,r*.7,0,6.29);ctx.fill();ctx.fillStyle=rgba('#ff6a30',.4+.3*Math.sin(T*9));ctx.beginPath();ctx.arc(0,0,r*.3,0,6.29);ctx.fill();}}
-    else if(s.kind==='heavy'){const r=9*K;ctx.fillStyle=s.alive?'#2b3340':'#1a1210';ctx.strokeStyle=s.alive?'#0d1118':'#5a2a1e';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,r,0,6.29);ctx.fill();ctx.stroke();
-      if(s.alive){ctx.rotate(s.ang||(c.dir>0?0:Math.PI));ctx.fillStyle='#4a5566';ctx.fillRect(-2*K,-5*K,20*K,3.2*K);ctx.fillRect(-2*K,1.8*K,20*K,3.2*K);ctx.fillStyle='#8a97aa';ctx.fillRect(-4*K,-4*K,8*K,8*K);ctx.fillStyle=rgba(c.col,.9);ctx.fillRect(-2*K,-1*K,3*K,2*K);}
+    else if(s.kind==='heavy'){ctx.fillStyle=s.alive?'#2b3340':'#1a1210';ctx.strokeStyle=s.alive?'#0d1118':'#5a2a1e';ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,0,r,0,6.29);ctx.fill();ctx.stroke();
+      if(s.alive){ctx.rotate(ang);ctx.fillStyle='#4a5566';ctx.fillRect(-r*.2,-r*.55,r*2.2,r*.35);ctx.fillRect(-r*.2,r*.2,r*2.2,r*.35);ctx.fillStyle='#8a97aa';ctx.fillRect(-r*.45,-r*.45,r*.9,r*.9);ctx.fillStyle=rgba(c.col,.9);ctx.fillRect(-r*.2,-r*.12,r*.35,r*.24);}
       else{ctx.fillStyle=rgba('#ff6a30',.3+.3*Math.sin(T*7+s.lx));ctx.beginPath();ctx.arc(0,0,r*.45,0,6.29);ctx.fill();}}
-    else{const r=5*K;ctx.fillStyle=s.alive?'#1f2733':'#2a1410';ctx.strokeStyle=s.alive?'#0d1118':'#5a2a1e';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(0,0,r,0,6.29);ctx.fill();ctx.stroke();
-      if(s.alive){ctx.rotate(s.ang||(c.dir>0?0:Math.PI));ctx.fillStyle='#6a788c';ctx.fillRect(-1*K,-2.4*K,10*K,1.8*K);ctx.fillRect(-1*K,.6*K,10*K,1.8*K);ctx.fillStyle=rgba(c.col,.8);ctx.beginPath();ctx.arc(0,0,1.6*K,0,6.29);ctx.fill();}
+    else{ctx.fillStyle=s.alive?'#1f2733':'#2a1410';ctx.strokeStyle=s.alive?'#0d1118':'#5a2a1e';ctx.lineWidth=.8;ctx.beginPath();ctx.arc(0,0,r,0,6.29);ctx.fill();ctx.stroke();
+      if(s.alive){ctx.rotate(ang);ctx.fillStyle='#6a788c';ctx.fillRect(-r*.2,-r*.5,r*2,r*.36);ctx.fillRect(-r*.2,r*.14,r*2,r*.36);ctx.fillStyle=rgba(c.col,.8);ctx.beginPath();ctx.arc(0,0,r*.3,0,6.29);ctx.fill();}
       else{ctx.fillStyle=rgba('#ff6a30',.3+.3*Math.sin(T*8+s.ly));ctx.beginPath();ctx.arc(0,0,r*.4,0,6.29);ctx.fill();}}
     ctx.restore();}
   if(c.alive&&!c.shieldDown){const r=c.shield,SC=CONFIG.shieldColor||c.col;ctx.save();pathPoly(c.shieldW);
