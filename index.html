@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Завантаження</title>
-<!-- VERSION 11 — якщо на сервері не видно змін, додайте ?v=11 до sv_loadingurl (кеш) -->
+<!-- VERSION 14 — якщо на сервері не видно змін, додайте ?v=14 до sv_loadingurl (кеш) -->
 <style>
 :root{--bg:#02040c;--blue:#5ec8ff;--red:#ff5a4a;--gold:#ffe81f;--txt:#d6ecff;--dim:#6f93b3}
 html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:Bahnschrift,'Arial Narrow','Segoe UI',Arial,sans-serif;color:var(--txt);user-select:none;text-transform:uppercase}
@@ -11,10 +11,14 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:
 #scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.13) 0 1px,transparent 1px 3px)}
 #vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.6) 100%)}
 .hud{position:absolute;pointer-events:none}
-#top{top:14px;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:0 22px;gap:16px}
-.panel{--c:var(--blue);position:relative;min-width:272px;max-width:310px;padding:6px 10px 7px;font-size:9.5px;letter-spacing:1px;color:var(--c);
+#top{top:14px;bottom:0;left:0;right:0;display:flex;justify-content:center;align-items:flex-start;padding:0 22px;gap:16px}
+#p1{position:absolute;right:22px;top:0}
+#p0{position:absolute;left:22px;bottom:110px}
+.panel{--c:var(--blue);position:relative;min-width:272px;max-width:390px;padding:6px 10px 7px;font-size:9.5px;letter-spacing:1px;color:var(--c);
   background:linear-gradient(180deg,rgba(10,30,60,.55),rgba(3,10,25,.7));border:1px solid var(--c);box-shadow:0 0 14px rgba(94,200,255,.25),inset 0 0 22px rgba(94,200,255,.08);
   clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))}
+@keyframes pf{0%,45%{box-shadow:0 0 30px var(--c),inset 0 0 34px var(--c)}}
+.panel.flash{animation:pf .8s steps(8)}
 .panel.red{--c:var(--red);background:linear-gradient(180deg,rgba(60,12,10,.55),rgba(25,4,4,.7));box-shadow:0 0 14px rgba(255,90,74,.25),inset 0 0 22px rgba(255,90,74,.08)}
 .panel .hd{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--c);padding-bottom:5px;margin-bottom:6px;opacity:.95}
 .name{font-weight:700;font-size:12px;letter-spacing:2px;text-shadow:0 0 8px var(--c)}
@@ -27,11 +31,11 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:
 .ros span{opacity:.75}.ros b{font-weight:400;color:#fff}
 .tac{font-size:10px;margin-top:5px;color:var(--gold);letter-spacing:2px}
 .tac span{color:var(--c);opacity:.7}
-.tur{display:flex;align-items:center;gap:5px;margin-top:6px;font-size:9px;white-space:nowrap}
+.tur{display:flex;align-items:center;gap:3px;flex-wrap:nowrap;margin-top:6px;font-size:9px;white-space:nowrap}
 .tur .tl{opacity:.75;margin-right:3px;letter-spacing:2px}
 .tur i{display:inline-flex;align-items:center;gap:2px;font-style:normal}
 .tur i em{font-style:normal;opacity:.85;min-width:7px;text-align:right}
-.tur i b{display:block;width:14px;height:5px;border:1px solid var(--c);position:relative;opacity:.9}
+.tur i b{display:block;width:9px;height:5px;border:1px solid var(--c);position:relative;opacity:.9}
 .tur i b u{position:absolute;left:0;top:0;bottom:0;background:var(--c);box-shadow:0 0 5px var(--c)}
 .tur i.x em{opacity:.35}.tur i.x b{border-color:#7a2a20;background:repeating-linear-gradient(45deg,#5a1a12 0 1px,transparent 1px 3px)}
 .tur .sep{opacity:.4;margin:0 2px}
@@ -110,14 +114,17 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:
      assets/interceptor.png bait.png flanker.png gunship.png shieldship.png ace.png bomber.png — МЛА для обох бортів
      assets/interceptor_1.png ... (будь-який клас + _0 або _1)  — окрема картинка тільки для цього борту
    Турелі: assets/turret_heavy.png turret_light.png turret_gen.png (+ turret_heavy_dead.png … для знищених) — ствол дивиться вправо
+     Окремо для борту: turret_heavy_0.png (лівий) / turret_heavy_1.png (правий) — те саме для light, gen і *_dead. Немає окремої — береться загальна.
    Звуки (mp3/ogg/wav): assets/turbolaser.mp3 light.mp3 blaster.mp3 shieldHit.mp3 shieldDown.mp3 torpedo.mp3
-     explosion.mp3 bigExplosion.mp3 subDestroyed.mp3 radio.mp3 launch.mp3   і   assets/music.mp3 — фонова музика (loop)
+     explosion.mp3 bigExplosion.mp3 subDestroyed.mp3 radio.mp3 launch.mp3 warp.mp3 (вихід з гіперпростору)   і   assets/music.mp3 — фонова музика (loop)
+     Назва шукається також у нижньому регістрі та з розширеннями .ogg/.wav (на Linux-серверах регістр важливий). Клавіша L у ?debug — перевірка всіх звуків.
    ===================================================================== */
 const ASSETS={dir:'assets/',
   images:{ship0:'ship0.png',ship1:'ship1.png',background:'background.png'},
   craftImages:['interceptor','bait','flanker','gunship','shieldship','ace','bomber'],
   turretImages:['turret_heavy','turret_light','turret_gen','turret_heavy_dead','turret_light_dead','turret_gen_dead'], // assets/turret_heavy.png … (ствол дивиться вправо; *_dead — знищена, необов'язково)
-  sounds:{turbolaser:'turbolaser.mp3',light:'light.mp3',blaster:'blaster.mp3',shieldHit:'shieldHit.mp3',shieldDown:'shieldDown.mp3',torpedo:'torpedo.mp3',explosion:'explosion.mp3',bigExplosion:'bigExplosion.mp3',subDestroyed:'subDestroyed.mp3',radio:'radio.mp3',launch:'launch.mp3'},
+  sounds:{turbolaser:'turbolaser.mp3',light:'light.mp3',blaster:'blaster.mp3',shieldHit:'shieldHit.mp3',shieldDown:'shieldDown.mp3',torpedo:'torpedo.mp3',explosion:'explosion.mp3',bigExplosion:'bigExplosion.mp3',subDestroyed:'subDestroyed.mp3',radio:'radio.mp3',launch:'launch.mp3',warp:'warp.mp3'},
+  gain:{},               // індивідуальна гучність звуків, напр. {shieldDown:1.4, light:.6} (множник до CONFIG.volume)
   music:'music.mp3',
   disable:[]            // напр. ['radio','light'] — повністю вимкнути ці звуки
 };
@@ -136,16 +143,29 @@ const CONFIG={
   //   щит іде за контуром PNG, турелі розставляються на корпусі (heavy по центру, light уздовж бортів, генератор на кормі), двигуни на кормі.
   //   Дві змінні нижче керують щитом; turrets:'auto' можна замінити власними координатами, shield — своїм режимом.
   pngShield:{pad:22, smooth:.6},   // pad — відступ щита від пікселів корабля (у пікселях моделі, 0..60); smooth — плавність обтікання 0 (різко, по кожному виступу) .. 1 (дуже м'яко)
-  pngTurrets:{heavy:3, light:6},   // скільки турелей розставляти автоматично на PNG-кораблі (симетрично; непарна велика — на центральній лінії)
-  turretSize:{heavy:12, light:7, gen:14},   // розмір турелей у пікселях моделі (діаметр)
-  maxEngines:6,                    // двигуни ставляться на крайню кормову точку PNG; кількість — за шириною корми, до цього максимуму
+  pngTurrets:{heavy:5, light:9},   // скільки турелей розставляти автоматично на PNG-кораблі (симетрично; непарна велика — на центральній лінії)
+  extraTurrets:{heavy:2, light:3},  // для векторних корпусів: скільки турелей додати до стандартного розкладу форми (ставляться автоматично, симетрично)
+  heavyRange:4200,                 // дальність великих турболазерів (px світу)
+  turretSize:{heavy:20, light:11, gen:18},  // розмір турелей у пікселях моделі (діаметр)
+  turretTurn:{heavy:1.5, light:6},          // швидкість повороту турелей, рад/с (велика — повільна й важка, мала — прудка)
+  maxEngines:6,                    // двигуни: на перший непрозорий піксель з боку корми; кількість — за висотою сопла, до цього максимуму
+  engineTolerance:10,              // px картинки: наскільки глибше за крайню кормову точку ще вважається соплом (окремі сопла → окремі вогні)
+  fleetScale:1.8,                  // множник розміру ангарів (масштаб битви)
+  shieldStyle:'plasma',            // 'plasma' — енергетична плівка (яскравий край, біжучі хвилі, інтерференція від влучань) · 'smooth' — проста оболонка
   shieldColor:'#9cd6ff',  // колір дефлекторних щитів (обом бортам)
-  shipLength:760, craftScale:2, world:{w:3200,h:1600},
+  shipLength:1100, craftScale:2, world:{w:4200,h:2300}, // більше поле — усе на ньому виглядає меншим
   demoDuration:100,     // с — тривалість бою, якщо відкрити просто у браузері (у GMod — реальний прогрес, темп підлаштовується сам)
   volume:0.6, musicVolume:0.3,
   winner:null,          // null = випадково; 0 або 1
   tactics:null          // null = випадково; або ['strike','hedgehog'] (strike artillery swarm ambush gunline decap attrition pincer hedgehog blitz suppress)
 };
+/* ДЕБАГ / ТЕСТИ. URL: loading.html?debug  ?speed=3  ?tactics=strike,ambush  ?winner=0  ?p=0.5  ?demo=60
+   Клавіші: L перевірка звуків · D панель+контури · Space пауза · +/- швидкість · 1..9 стрибок до 10..90% · N наступний бій (гіперстрибок) · R перезапуск
+            T перемкнути тактики (наступна пара зі списку) · K збити щит переможеного · E евакуація · H сховати HUD · W поміняти переможця */
+const URLP=new URLSearchParams(location.search);
+if(URLP.get('tactics'))CONFIG.tactics=URLP.get('tactics').split(',');if(URLP.get('winner')!=null)CONFIG.winner=+URLP.get('winner');if(URLP.get('demo'))CONFIG.demoDuration=+URLP.get('demo');
+const FAIR=/[?&]fair/.test(location.search); // чесний режим: без режисера, перемагає сильніший (для тестів тактик)
+const DBG={nodraw:/[?&]nodraw/.test(location.search),on:/[?&]debug/.test(location.search),speed:+(URLP.get('speed')||1),pause:false,hud:true,forceP:URLP.get('p')?+URLP.get('p'):null,tacIdx:0};
 
 /* ================= ОСНОВА ================= */
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
@@ -158,7 +178,6 @@ const rgba=(hex,a)=>`rgba(${parseInt(hex.slice(1,3),16)},${parseInt(hex.slice(3,
 const pip=(poly,x,y)=>{let r=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])r=!r;}return r;};
 const load={gmod:false,total:0,needed:0,progress:0,disp:0,status:'Підключення',file:'',t0:null,p0:0,est:CONFIG.demoDuration,scaled:false};
 let DM=1; // множник урону під темп завантаження
-const DEBUG=/[?&]debug/.test(location.search); // loading.html?debug — показати контури й стан підгонки PNG
 let run=0,runT=0,warp=-1,resultT=0,prevTactics=[null,null];const battle={p:0,virt:0,stallT:0,lastReal:-1,D:100,dispReal:0};
 function loadImg(name){const i=new Image();i.ok=false;const url=ASSETS.dir+name;
   const plain=()=>{i.onload=()=>{i.ok=i.naturalWidth>0;};i.onerror=()=>{i.ok=false;};i.src=url;};
@@ -166,24 +185,63 @@ function loadImg(name){const i=new Image();i.ok=false;const url=ASSETS.dir+name;
   else plain();return i;}
 const IMG={bg:loadImg(ASSETS.images.background),ship:[loadImg(ASSETS.images.ship0),loadImg(ASSETS.images.ship1)],craft:[{},{}]};
 ASSETS.craftImages.forEach(k=>{const g=loadImg(k+'.png');[0,1].forEach(s=>{const o=loadImg(k+'_'+s+'.png');IMG.craft[s][k]={g,o};});});
-IMG.turret={};ASSETS.turretImages.forEach(k=>{IMG.turret[k.replace('turret_','')]=loadImg(k+'.png');});
+IMG.turret={};IMG.turretSide=[{},{}]; // загальна картинка + окремі для бортів: лівий (side 0) — _0, правий (side 1) — _1
+const TURRET_SUFFIX=[['_0'],['_1']];
+ASSETS.turretImages.forEach(k=>{const n=k.replace('turret_','');IMG.turret[n]=loadImg(k+'.png');TURRET_SUFFIX.forEach((sf,s)=>{IMG.turretSide[s][n]=sf.map(x=>loadImg(k+x+'.png'));});});
+const turretImg=(side,n)=>{for(const i of (IMG.turretSide[side][n]||[]))if(i.ok)return i;const g=IMG.turret[n];return g&&g.ok?g:null;};
 const craftImg=(side,k)=>{const e=IMG.craft[side][k];if(!e)return null;return e.o.ok?e.o:e.g.ok?e.g:null;};
 
 /* ================= ЗВУК + МУЗИКА ================= */
-const Snd={ctx:null,master:null,noise:null,pool:{},last:{},muted:false,music:null,mus:null,
-  init(){try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();this.master=this.ctx.createGain();this.master.gain.value=CONFIG.volume;this.master.connect(this.ctx.destination);
-      const n=this.ctx.createBuffer(1,this.ctx.sampleRate*3,this.ctx.sampleRate),d=n.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;this.noise=n;}catch(e){}
-    for(const k in ASSETS.sounds){const pool={ok:true,a:[]};for(let i=0;i<6;i++){const a=new Audio(ASSETS.dir+ASSETS.sounds[k]);a.preload='auto';a.onerror=()=>{pool.ok=false;};pool.a.push(a);}this.pool[k]=pool;}
-    const m=new Audio(ASSETS.dir+ASSETS.music);m.loop=true;m.volume=CONFIG.musicVolume;m.onerror=()=>{this.music=null;this.startSynthMusic();};m.oncanplay=()=>{this.music=m;m.play().catch(()=>{});};
-    const resume=()=>{if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume();if(this.music&&this.music.paused&&!this.muted)this.music.play().catch(()=>{});};
-    ['click','keydown','pointerdown'].forEach(e=>addEventListener(e,resume));setInterval(resume,1500);},
-  play(name,vol=1,x=null){if(this.muted||ASSETS.disable.includes(name))return;const now=performance.now();if(now-(this.last[name]||0)<45)return;this.last[name]=now;
-    const pan=x==null?0:clamp((x/WW-.5)*1.6,-1,1);const pool=this.pool[name];
-    if(pool&&pool.ok){const a=pool.a.find(a=>a.paused||a.ended)||pool.a[0];a.volume=clamp(vol*CONFIG.volume,0,1);try{a.currentTime=0;}catch(e){}a.play().catch(()=>{pool.ok=false;});return;}
-    this.synth(name,vol,pan);},
+// Кожен звук: assets/<ім'я> (mp3/ogg/wav, також пробується нижній регістр назви) → WebAudio-буфер.
+// Файлу справді немає → синтезований звук. Заблокований автозапуск чи збій play() НІКОЛИ не перемикають звук на синтез.
+const Snd={ctx:null,master:null,noise:null,st:{},bufs:{},pool:{},pend:{},act:{},last:{},muted:false,music:null,mus:null,
+  JIT:{light:.08,blaster:.08,turbolaser:.05,shieldHit:.07,explosion:.06,torpedo:.04}, // випадкова зміна висоти — менше «кулеметності»
+  MAXV:{light:5,blaster:5,turbolaser:6,shieldHit:5,shieldDown:3,explosion:6,bigExplosion:2,subDestroyed:4,torpedo:4,radio:2,launch:3,warp:2}, // макс. одночасних голосів
+  cands(file){const m=/^(.*?)(\.[a-z0-9]+)?$/i.exec(file),b=m[1],out=[file];
+    for(const bb of (b.toLowerCase()!==b?[b,b.toLowerCase()]:[b]))for(const x of ['.mp3','.ogg','.wav'])out.push(bb+x);
+    return out.filter((u,i)=>out.indexOf(u)===i);},
+  decode(ab){return new Promise((ok,no)=>{const p=this.ctx.decodeAudioData(ab,ok,no);if(p&&p.catch)p.catch(no);});},
+  probeEl(name,url){return new Promise(res=>{const a=new Audio();a.preload='auto';let done=false;const fin=v=>{if(!done){done=true;res(v);}};
+      a.onerror=()=>fin(false);a.onloadedmetadata=()=>{const p=[a];for(let i=1;i<4;i++){const q=new Audio(url);q.preload='auto';p.push(q);}this.pool[name]=p;fin(true);};
+      a.src=url;setTimeout(()=>fin(false),8000);});},
+  async loadSound(name){const file=ASSETS.sounds[name];this.st[name]='loading';const web=this.ctx&&window.fetch&&location.protocol!=='file:';
+    for(const u of this.cands(file)){
+      try{if(web){const r=await fetch(ASSETS.dir+u,{cache:'no-cache'});if(!r.ok)continue;this.bufs[name]=await this.decode(await r.arrayBuffer());this.st[name]='buf';this.flush(name);return;}
+        else if(await this.probeEl(name,ASSETS.dir+u)){this.st[name]='el';this.flush(name);return;}}catch(e){}}
+    this.st[name]='missing';console.warn('[snd] немає файлу для «'+name+'» ('+file+') — буде синтезований звук');this.flush(name);},
+  flush(name){const p=this.pend[name];delete this.pend[name];if(p&&performance.now()-p.t<2000)this.play(name,p.vol,p.x,true);}, // звук, що «не дочекався» завантаження файлу
+  init(){try{const AC=window.AudioContext||window.webkitAudioContext;this.ctx=new AC();this.master=this.ctx.createGain();this.master.gain.value=CONFIG.volume;this.master.connect(this.ctx.destination);
+      const n=this.ctx.createBuffer(1,this.ctx.sampleRate*3,this.ctx.sampleRate),d=n.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;this.noise=n;}catch(e){this.ctx=null;}
+    for(const k in ASSETS.sounds)this.loadSound(k);
+    const m=new Audio(ASSETS.dir+ASSETS.music);m.loop=true;m.volume=CONFIG.musicVolume;m.onerror=()=>{this.music=null;this.startSynthMusic();};
+    m.oncanplay=()=>{this.music=m;m.muted=this.muted;if(!this.muted){const r=m.play();if(r&&r.catch)r.catch(()=>{});}};
+    ['click','keydown','pointerdown','mousedown','touchstart'].forEach(e=>addEventListener(e,()=>this.unlock(),{passive:true}));setInterval(()=>this.unlock(),1500);},
+  unlock(){const c=this.ctx;if(c&&c.state==='suspended')c.resume().catch(()=>{});
+    if(this.music&&this.music.paused&&!this.muted){const r=this.music.play();if(r&&r.catch)r.catch(()=>{});}},
+  setMuted(m){this.muted=m;if(this.master)this.master.gain.setTargetAtTime(m?0:CONFIG.volume,this.ctx.currentTime,.02);
+    if(this.music)this.music.muted=m;for(const k in this.pool)this.pool[k].forEach(a=>{a.muted=m;if(m)a.pause();});
+    document.getElementById('mute').textContent=m?'SND: OFF':'SND: ON';},
+  gain(name){const g=ASSETS.gain&&ASSETS.gain[name];return g==null?1:g;},
+  play(name,vol=1,x=null,force=false){if(this.muted||ASSETS.disable.includes(name))return;const now=performance.now();
+    if(!force&&now-(this.last[name]||0)<45)return;
+    const c=this.ctx,s=this.st[name];
+    if(c&&c.state==='suspended')c.resume().catch(()=>{});
+    if(s==='loading'){this.pend[name]={vol,x,t:now};return;}              // файл ще декодується — програємо щойно буде готовий
+    if(c&&c.state!=='running'&&s!=='el')return;                          // автозапуск заблоковано: пропускаємо звук, але нічого не вимикаємо
+    this.last[name]=now;const pan=x==null?0:clamp((x/WW-.5)*1.6,-1,1);
+    if(s==='buf')this.playBuf(name,vol,pan);else if(s==='el')this.playEl(name,vol);else this.synth(name,vol,pan);},
+  playBuf(name,vol,pan){const c=this.ctx,n=this.act[name]||0;if(n>=(this.MAXV[name]||6))return;
+    const s=c.createBufferSource();s.buffer=this.bufs[name];const j=this.JIT[name]||0;if(j)s.playbackRate.value=1+rand(-j,j);
+    const g=c.createGain();g.gain.value=clamp(vol*this.gain(name),0,3);s.connect(g);let out=g;
+    if(c.createStereoPanner){const p=c.createStereoPanner();p.pan.value=pan;g.connect(p);out=p;}out.connect(this.master);
+    this.act[name]=n+1;s.onended=()=>{this.act[name]--;try{out.disconnect();}catch(e){}};s.start();},
+  playEl(name,vol){const p=this.pool[name];if(!p)return;const a=p.find(a=>a.paused||a.ended)||p[0];a.volume=clamp(vol*CONFIG.volume*this.gain(name),0,1);
+    try{a.currentTime=0;}catch(e){}const r=a.play();if(r&&r.catch)r.catch(()=>{});},
+  report(){const n={buf:0,el:0,loading:0,missing:0},miss=[];for(const k in ASSETS.sounds){const s=this.st[k]||'loading';n[s]++;if(s==='missing')miss.push(k);}
+    return `SND ${this.ctx?this.ctx.state:'no-ctx'} · файли:${n.buf+n.el} синтез:${n.missing} вант.:${n.loading}`+(miss.length?' · без файлу: '+miss.join(','):'');},
   synth(name,vol,pan){const c=this.ctx;if(!c||c.state!=='running')return;const t=c.currentTime,g=c.createGain();let out=g;
     if(c.createStereoPanner){const p=c.createStereoPanner();p.pan.value=pan;g.connect(p);out=p;}out.connect(this.master);
-    const osc=(type,f0,f1,dur,v)=>{const o=c.createOscillator();o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(1,f1),t+dur);const gg=c.createGain();gg.gain.setValueAtTime(v*vol,t);gg.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(gg);gg.connect(g);o.start(t);o.stop(t+dur);};
+    const osc=(type,f0,f1,dur,v,d0=0)=>{const o=c.createOscillator();o.type=type;o.frequency.setValueAtTime(f0,t+d0);o.frequency.exponentialRampToValueAtTime(Math.max(1,f1),t+d0+dur);const gg=c.createGain();gg.gain.setValueAtTime(v*vol,t+d0);gg.gain.exponentialRampToValueAtTime(.001,t+d0+dur);o.connect(gg);gg.connect(g);o.start(t+d0);o.stop(t+d0+dur);};
     const noise=(dur,v,f0,f1,type='lowpass')=>{const s=c.createBufferSource();s.buffer=this.noise;s.loop=true;const f=c.createBiquadFilter();f.type=type;f.frequency.setValueAtTime(f0,t);f.frequency.exponentialRampToValueAtTime(Math.max(10,f1),t+dur);const gg=c.createGain();gg.gain.setValueAtTime(v*vol,t);gg.gain.exponentialRampToValueAtTime(.001,t+dur);s.connect(f);f.connect(gg);gg.connect(g);s.start(t,Math.random()*2);s.stop(t+dur);};
     switch(name){
       case 'turbolaser':osc('sawtooth',300,45,.5,.4);noise(.3,.15,2500,300);break;
@@ -191,11 +249,12 @@ const Snd={ctx:null,master:null,noise:null,pool:{},last:{},muted:false,music:nul
       case 'blaster':osc('square',1300,350,.08,.07);break;
       case 'shieldHit':osc('sine',700,1500,.22,.1);break;
       case 'shieldDown':osc('sawtooth',800,30,1.4,.4);noise(1.2,.3,3000,100);break;
+      case 'warp':noise(.5,.3,300,4500,'bandpass');osc('sawtooth',80,900,.45,.1);break;
       case 'torpedo':osc('sine',160,40,.35,.45);noise(.3,.2,900,100);break;
       case 'explosion':noise(.7,.5,900,80);osc('sine',90,30,.5,.4);break;
       case 'subDestroyed':noise(1,.6,1200,60);osc('sine',120,25,.8,.5);osc('square',400,80,.3,.1);break;
       case 'bigExplosion':noise(3,.9,1500,40);osc('sine',70,15,2.5,.9);noise(2,.4,300,40);break;
-      case 'radio':osc('square',1100,1100,.05,.05);setTimeout(()=>{try{osc('square',1400,1400,.05,.05)}catch(e){}},80);noise(.25,.03,2000,2000,'bandpass');break;
+      case 'radio':osc('square',1100,1100,.05,.05);osc('square',1400,1400,.05,.05,.08);noise(.25,.03,2000,2000,'bandpass');break;
       case 'launch':noise(.5,.25,400,3000,'bandpass');break;}},
   // синтезована фонова музика: тягучий пад + низький пульс, наростає з прогресом бою
   startSynthMusic(){const c=this.ctx;if(!c||this.mus)return;const mg=c.createGain();mg.gain.value=0;mg.connect(c.destination);const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=400;f.Q.value=2;f.connect(mg);
@@ -209,7 +268,7 @@ const Snd={ctx:null,master:null,noise:null,pool:{},last:{},muted:false,music:nul
       if(now>=m.next){m.next=now+8;const ch=chords[m.chord++%chords.length];m.voices.forEach((v,i)=>{const semi=ch[i]+(i>=2?12:0)-12;v.o.frequency.setTargetAtTime(110*Math.pow(2,semi/12),now,1.5);});}
       const bpm=60+p*60,bl=60/bpm;if(now>=m.beat){m.beat=now+bl;m.pulse.frequency.setValueAtTime(55,now);m.pg.gain.cancelScheduledValues(now);m.pg.gain.setValueAtTime(CONFIG.musicVolume*(.25+p*.5),now);m.pg.gain.exponentialRampToValueAtTime(.001,now+bl*.6);}};}
 };
-document.getElementById('mute').onclick=()=>{Snd.muted=!Snd.muted;if(Snd.music){Snd.music.muted=Snd.muted;}document.getElementById('mute').textContent=Snd.muted?'SND: OFF':'SND: ON';};
+document.getElementById('mute').onclick=()=>Snd.setMuted(!Snd.muted);
 
 /* ================= РАЦІЯ ================= */
 const rl=document.getElementById('rlines');let radioQ=[],radioT=0;
@@ -225,7 +284,8 @@ const CFG={interceptor:{v:205,turn:3.4,hp:5,range:260,cd:.22,dmg:.6},bait:{v:170
   gunship:{v:150,turn:2.2,hp:22,range:300,cd:.4,dmg:1.6,sm:3.2},shieldship:{v:245,turn:4.2,hp:6,range:200,cd:.3,dmg:.4,bubble:26},ace:{v:245,turn:4.6,hp:8,range:300,cd:.14,dmg:1.1,sm:1.6},bomber:{v:108,turn:1.7,hp:10,cd:.8}};
 const LABEL={interceptor:'Перехопл',bait:'Штурм',flanker:'Обхідні',gunship:'Канон',shieldship:'Щитон',ace:'Еліта',bomber:'Бомб'};
 const L=CONFIG.shipLength,K=L/300,CS=CONFIG.craftScale||1;
-const cruisers=[],crafts=[],bolts=[],parts=[],ripples=[],stars=[],frags=[];
+const cruisers=[],crafts=[],bolts=[],parts=[],ripples=[],stars=[],frags=[],rings=[],pods=[],debris=[];
+function ring(x,y,r0,r1,col,life,w=2){rings.push({x,y,r0,r1,col,life,max:life,w});}
 // ФОРМИ КОРПУСІВ. poly — силует (ніс +x), turrets — стандартні турелі, shield — стандартна форма щита, deco — внутрішні деталі
 const HULLS={
   wedge:{poly:[[-150,0],[-150,-34],[-122,-50],[-50,-42],[40,-24],[150,-5],[150,5],[40,24],[-50,42],[-122,50],[-150,34]],
@@ -267,19 +327,20 @@ function fitToImage(c,o){ // контур PNG → корпус, щит (огин
     const xs=cols.map(q=>lx(q.x)),cy0=(top[0]+bot[0])/2,cy1=(top[n-1]+bot[n-1])/2;
     const poly=[[xs[0]-pad*.9,cy0]];for(let i=0;i<n;i++)poly.push([xs[i],top[i]]);poly.push([xs[n-1]+pad*.9,cy1]);for(let i=n-1;i>=0;i--)poly.push([xs[i],bot[i]]);
     c.shieldL=poly;}
-  // ДВИГУНИ: тільки крайня кормова точка. Беремо колонки в межах 8 px від корми, збираємо суцільні вертикальні відрізки
-  {const segs=[];for(let x=minX;x<=Math.min(w-1,minX+8);x++){let run=null;for(let y=0;y<=h;y++){const on=y<h&&A(x,y)>40;if(on&&!run)run={t:y,b:y};else if(on)run.b=y;else if(run){segs.push(run);run=null;}}}
-    const merged=[];segs.sort((a,b)=>a.t-b.t).forEach(sg=>{const m=merged[merged.length-1];if(m&&sg.t<=m.b+4)m.b=Math.max(m.b,sg.b);else merged.push({...sg});});
-    const ex=lx(minX),eng=[],maxE=CONFIG.maxEngines||6;const tot=merged.reduce((a,m)=>a+(m.b-m.t),0);
-    for(const m of merged){const tL=ly(m.t),bL=ly(m.b),H=bL-tL;let n=Math.max(1,Math.round(H/(12*K)));n=Math.min(n,Math.max(1,Math.round(maxE*(m.b-m.t)/Math.max(1,tot))));
-      for(let i=0;i<n;i++){const f=(i+1)/(n+1);eng.push({x:ex,y:tL+H*f,r:clamp(H/(n+1)*.45,2.5*K,8*K)});}}
-    c.engines=eng.slice(0,maxE);}
+  // ДВИГУНИ: для кожного рядка — перший непрозорий піксель з боку корми. Рядки, де він не глибше за крайню точку + tolerance, — сопла.
+  {const tol=CONFIG.engineTolerance||10;const first=[];for(let y=0;y<h;y++){let fx=-1;for(let x=minX;x<=Math.min(w-1,minX+tol+2);x++)if(A(x,y)>40){fx=x;break;}first.push(fx);}
+    const segs=[];let run=null;for(let y=0;y<=h;y++){const on=y<h&&first[y]>=0&&first[y]<=minX+tol;if(on&&!run)run={t:y,b:y,fx:first[y]};else if(on){run.b=y;run.fx=Math.min(run.fx,first[y]);}else if(run){if(run.b-run.t>=3)segs.push(run);run=null;}}
+    const eng=[],maxE=CONFIG.maxEngines||6,tot=segs.reduce((a,m)=>a+(m.b-m.t),0);
+    for(const m of segs){const tL=ly(m.t),bL=ly(m.b),H=bL-tL;let n=Math.max(1,Math.round(H/(12*K)));n=Math.min(n,Math.max(1,Math.round(maxE*(m.b-m.t)/Math.max(1,tot))));
+      for(let i=0;i<n;i++){const f=(i+1)/(n+1),yy=tL+H*f,py=Math.round((yy+c.ch/2)*2);let px=-1;for(let x=m.fx;x<=m.fx+tol+4&&x<w;x++)if(A(x,py)>40){px=x;break;} // перевірка: вогонь справді торкається корпусу
+        if(px<0)continue;eng.push({x:lx(px),y:yy,r:clamp(H/(n+1)*.45,2.5*K,8*K)});}}
+    eng.sort((a,b)=>a.y-b.y);c.engines=eng.slice(0,maxE);if(DBG.on)console.log('engines',c.side,eng.length,'segs',segs.length);}
   // ТУРЕЛІ: симетрично відносно осі корабля
   const colAt=f=>{const x=minX+(maxX-minX)*f;let best=cols[0];for(const q of cols)if(Math.abs(q.x-x)<Math.abs(best.x-x))best=q;return best;};
   const onPix=(x,y)=>A(Math.round((x+c.cw/2)*2),Math.round((y+c.ch/2)*2))>40;
   const symPair=(q,frac)=>{const cy=ly((q.t+q.b)/2),hh=ly(q.b)-cy;let off=hh*frac;while(off>2&&!(onPix(lx(q.x),cy-off)&&onPix(lx(q.x),cy+off)))off-=2;return {x:lx(q.x),cy,off};};
   if(c.autoTurrets){const nH=CONFIG.pngTurrets.heavy,nL=CONFIG.pngTurrets.light;c.subs.length=0;let n=1;
-    const add=(kind,x,y)=>c.subs.push({kind,n:kind==='gen'?'Г':n++,lx:x,ly:y,hp:1,max:1,cd:rand(0,2),alive:true,ang:0});
+    const add=(kind,x,y)=>c.subs.push({kind,n:kind==='gen'?'Г':n++,lx:x,ly:y,hp:1,max:1,cd:rand(0,2),alive:true,ang:null,rec:0,flash:0});
     const pairsH=Math.floor(nH/2),oddH=nH%2;for(let i=0;i<pairsH;i++){const p=symPair(colAt(.35+.4*i/Math.max(1,pairsH-1)),.45);add('heavy',p.x,p.cy-p.off);add('heavy',p.x,p.cy+p.off);}
     if(oddH){const q=colAt(.8);add('heavy',lx(q.x),ly((q.t+q.b)/2));}
     const pairsL=Math.floor(nL/2);for(let i=0;i<pairsL;i++){const p=symPair(colAt(.12+.76*(i+.5)/pairsL),.78);add('light',p.x,p.cy-p.off);add('light',p.x,p.cy+p.off);}
@@ -298,47 +359,70 @@ function shieldPoly(hd,shp){ // контур щита у локальних ко
 function mkCruiser(side){
   const s=CONFIG.ships[side],hd=HULLS[s.hull]||HULLS.wedge;
   const c={side,name:s.name,cs:s.callsign,squad:s.squad,col:s.color,col2:s.color2,dir:side?-1:1,hd,
-    x:side?WW+400:-400,y:WH*.5,hx:side?WW*.77:WW*.23,
+    x:side?WW+400:-400,y:side?WH*.74:WH*.26,hx:side?WW*.79:WW*.21,hy:side?WH*.74:WH*.26,rot:0,
     hull:1,shield:1,shieldDown:false,shieldFallAt:1,shieldFellAt:null,len:L,
     hangar:{},reserve:null,queue:[],launchCd:0,brainT:rand(0,1),canFire:false,fireRate:.6,subs:[],tactic:null,
-    alive:true,dying:0,gone:false,bob:rand(0,7),smokeT:0,raidCd:0,finT:0,hullW:[],shieldW:[],canvas:null};
-  let n=1;const add=(kind,p)=>c.subs.push({kind,n:kind==='gen'?'Г':n++,lx:p[0]*K,ly:p[1]*K,hp:1,max:1,cd:rand(0,2),alive:true,ang:0});
-  const tr=(s.turrets&&s.turrets!=='auto')?s.turrets:hd.turrets;(tr.heavy||[]).forEach(p=>add('heavy',p));(tr.light||[]).forEach(p=>add('light',p));if(tr.gen)add('gen',tr.gen);
+    alive:true,dying:0,gone:false,bob:rand(0,7),smokeT:0,raidCd:0,finT:0,hullW:[],shieldW:[],canvas:null,warpIn:0,warpOut:-1,podsT:0,podsLeft:0,shieldUp:0};
+  let n=1;const add=(kind,p)=>c.subs.push({kind,n:kind==='gen'?'Г':n++,lx:p[0]*K,ly:p[1]*K,hp:1,max:1,cd:rand(0,2),alive:true,ang:null,rec:0,flash:0});
+  const tr=(s.turrets&&s.turrets!=='auto')?s.turrets:hd.turrets;(tr.heavy||[]).forEach(p=>add('heavy',p));(tr.light||[]).forEach(p=>add('light',p));
+  if(!(s.turrets&&s.turrets!=='auto')){ // додаткові турелі на векторний корпус: симетрично, на вільних місцях
+    const P=hd.poly,inP=(x,y)=>pip(P,x,y),hh=x=>{let h=0;while(h<60&&inP(x,h+1)&&inP(x,-h-1))h++;return h;};
+    const used=[...(tr.heavy||[]),...(tr.light||[])],free=x=>used.every(u=>Math.abs(u[0]-x)>16||Math.abs(u[1])>0&&false);
+    const cand=[];for(let x=-125;x<=125;x+=5){const h=hh(x);if(h>=8)cand.push({x,h});}
+    const pickX=(pref,minH)=>{let best=null,bs=-1e9;for(const q of cand){if(q.h<minH||!free(q.x))continue;const sc=-Math.abs(q.x-pref)+q.h*.5;if(sc>bs){bs=sc;best=q;}}return best;};
+    const ex=CONFIG.extraTurrets||{heavy:0,light:0};let nH=ex.heavy,nL=ex.light;
+    for(let i=0;nH>=2&&i<4;i++){const q=pickX([-20,60,-100,100][i],18);if(!q)continue;used.push([q.x,q.h*.42]);add('heavy',[q.x,-q.h*.42]);add('heavy',[q.x,q.h*.42]);nH-=2;}
+    if(nH>0){const q=pickX(90,8);if(q){used.push([q.x,0]);add('heavy',[q.x,0]);}}
+    for(let i=0;nL>=2&&i<4;i++){const q=pickX([-75,30,110,-120][i],10);if(!q)continue;used.push([q.x,q.h*.72]);add('light',[q.x,-q.h*.72]);add('light',[q.x,q.h*.72]);nL-=2;}
+    if(nL>0){const q=pickX(130,6)||pickX(-130,6);if(q){used.push([q.x,0]);add('light',[q.x,0]);}}}
+  if(tr.gen)add('gen',tr.gen);
+  {let k=1;for(const z of c.subs.filter(z=>z.kind==='heavy'))z.n=k++;for(const z of c.subs.filter(z=>z.kind==='light'))z.n=k++;} // нумерація: спершу великі, потім малі
   c.shp=Object.assign({},hd.shield,s.shield||{});if(!s.shield||s.shield.mode==='image')c.shp=Object.assign({},hd.shield,CONFIG.pngShield,s.shield||{},{imgMode:true});
   c.autoTurrets=!s.turrets||s.turrets==='auto';
   c.shieldL=shieldPoly(hd,c.shp);
   c.hullL=hd.poly.map(p=>[p[0]*K,p[1]*K]);
   return c;
 }
-const wp=(c,lx,ly)=>({x:c.x+lx*c.dir,y:c.y+ly});
+const wp=(c,lx,ly)=>{const fx=lx*c.dir,cs=Math.cos(c.rot),sn=Math.sin(c.rot);return {x:c.x+fx*cs-ly*sn,y:c.y+fx*sn+ly*cs};};
+const fwd=(c,ahead,lat)=>wp(c,ahead,lat); // точка: ahead — уперед по курсу корабля (+ до носа), lat — вбік
+const fwdAngle=c=>c.rot+(c.dir>0?0:Math.PI); // кут курсу корабля у світі
 const subPos=(c,s)=>wp(c,s.lx,s.ly);
-const inShield=(c,x,y)=>!c.shieldDown&&pip(c.shieldW,x,y);
-const inHull=(c,x,y,m=1)=>pip(m===1?c.hullW:c.hullL.map(p=>[c.x+p[0]*m*c.dir,c.y+p[1]*m]),x,y);
+function turnSub(c,s,want,rate,dt){ // плавний поворот турелі до кута want; повертає залишкову похибку
+  if(s.ang==null)s.ang=fwdAngle(c);const d=wrap(want-s.ang),m=rate*dt;s.ang+=d>m?m:d<-m?-m:d;return Math.abs(wrap(want-s.ang));}
+const inShield=(c,x,y)=>!c.shieldDown&&c.shieldUp>=1&&pip(c.shieldW,x,y);
+const inHull=(c,x,y,m=1)=>pip(m===1?c.hullW:c.hullL.map(p=>{const q=wp(c,p[0]*m,p[1]*m);return [q.x,q.y];}),x,y);
 const alive=(c,kind)=>c.subs.filter(s=>s.alive&&s.kind===kind);
 const nearestSub=(c,kind,x,y)=>{let b=null,bd=1e9;for(const s of alive(c,kind)){const p=subPos(c,s),d=Math.hypot(p.x-x,p.y-y);if(d<bd){bd=d;b=s;}}return b;};
 const KW={light:1,heavy:1.7,gen:2.3};
 const weakestSub=(c,inclGen)=>{const a=c.subs.filter(s=>s.alive&&(inclGen||s.kind!=='gen'));a.sort((p,q)=>p.hp*KW[p.kind]-q.hp*KW[q.kind]);return a[0]||null;};
 
 function damageSub(c,s,dmg){if(!s.alive)return;s.hp-=dmg;const p=subPos(c,s);
-  if(s.hp<=0){s.hp=0;s.alive=false;boom(p.x,p.y,s.kind==='gen'?40:20,s.kind==='gen'?6:3.5,'#ffb060');Snd.play('subDestroyed',.8,p.x);shake=Math.max(shake,s.kind==='gen'?10:4);
+  if(s.hp<=0){s.hp=0;s.alive=false;boom(p.x,p.y,s.kind==='gen'?40:20,s.kind==='gen'?6:3.5,'#ffb060');Snd.play('subDestroyed',s.kind==='gen'?.6:.8,p.x);shake=Math.max(shake,s.kind==='gen'?10:4);
     const en=cruisers[1-c.side];
     if(s.kind==='gen'){radio(`ЕСКАДРИЛЬЯ «${en.squad}»`,'Генератор щита знищено! Повторюю — їхній щит іде!',en.col2);if(!c.shieldDown)shieldCollapse(c);}
     else if(s.kind==='heavy')radio(`ЕСКАДРИЛЬЯ «${en.squad}»`,pick([`Турель ${s.n} знищена! Є влучання по батареї!`,`Мінус гармата головного калібру, турель ${s.n}!`]),en.col2);
     else if(Math.random()<.5)radio(`ЕСКАДРИЛЬЯ «${en.squad}»`,pick([`Зенітка ${s.n} подавлена!`,`Турель ${s.n} горить, прохід відкрито!`]),en.col2);
     if(alive(c,'light').length===0&&s.kind==='light')radio(c.cs,'Усі зенітні батареї втрачено. Ми беззахисні проти МЛА!',c.col);}
   else if(Math.random()<.3)boom(p.x,p.y,3,1,'#ffd0a0');}
-function shieldCollapse(c){c.shield=0;c.shieldDown=true;c.shieldFellAt=load.disp;boom(c.x,c.y,70,9,c.col);Snd.play('shieldDown',1,c.x);shake=14;const g=c.subs.find(s=>s.kind==='gen');if(g.alive){g.alive=false;g.hp=0;}
+function shieldCollapse(c){c.shield=0;c.shieldDown=true;c.shieldFellAt=load.disp;c.collapseT=T;boom(c.x,c.y,70,9,c.col);Snd.play('shieldDown',1,c.x,true);shake=Math.max(shake,14);const g=c.subs.find(s=>s.kind==='gen');if(g&&g.alive){g.alive=false;g.hp=0;}
+  shieldShatter(c);const pe=document.getElementById('p'+c.side);if(pe){pe.classList.remove('flash');void pe.offsetWidth;pe.classList.add('flash');}
   emergencyReserve(c);}
+function shieldShatter(c){const P=c.shieldW;if(!P||!P.length)return;const SC=CONFIG.shieldColor||c.col; // розліт «уламків» щита по його контуру
+  ring(c.x,c.y,c.len*.25,c.len*1.05,SC,.9,5);ring(c.x,c.y,c.len*.1,c.len*.7,'#ffffff',.5,3);
+  const n=Math.min(40,P.length*3);for(let i=0;i<n;i++){const q=P[Math.floor(i*P.length/n)],a=Math.atan2(q[1]-c.y,q[0]-c.x)+rand(-.35,.35),s=rand(120,360);
+    debris.push({x:q[0],y:q[1],vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(.7,1.5),max:1.5,len:rand(5,16),col:Math.random()<.4?'#ffffff':SC,spin:true});}
+  for(let i=0;i<14;i++){const q=P[Math.floor(Math.random()*P.length)];boom(q[0],q[1],4,rand(1,2.5),SC);}}
 function emergencyReserve(c){if(!c.reserve||c.reserveUsed)return;c.reserveUsed=true;for(const k in c.reserve)c.hangar[k]=(c.hangar[k]||0)+c.reserve[k];
   c.queue.unshift(...Q.convoy(c.reserve.interceptor||0),...Array(c.reserve.ace||0).fill(['ace','hunt',99]));radio(c.cs,'Екстрений резерв — на старт! Конвой навколо корабля, еліта — зустрічний бій!',c.col);}
 
 function spawnCraft(c,type,role,group,prio){
   const up=Math.random()<.5?-1:1,en=cruisers[1-c.side];
-  const k={type,side:c.side,role:role||'cap',group:group||0,prio:prio||['hull'],x:c.x-c.dir*50,y:c.y+up*55,a:(c.dir>0?0:Math.PI)+rand(-.3,.3),
+  const sp0=fwd(c,-50,up*55);const k={type,side:c.side,role:role||'cap',group:group||0,prio:prio||['hull'],x:sp0.x,y:sp0.y,a:fwdAngle(c)+rand(-.3,.3),
     hp:CFG[type].hp,ammo:type==='bomber'?3:0,state:(type==='bomber'||role==='flank')?'flank':'go',target:null,sub:null,cd:rand(.3,1),retT:0,
     jink:0,jinkT:0,dodge:0,age:0,phase:rand(0,6.28),off:rand(-90,90),offy:rand(-40,40),flee:false,bub:1,slot:crafts.filter(q=>q.side===c.side&&q.type==='shieldship').length,
-    wp:{x:clamp(en.hx-en.dir*rand(80,260)+rand(-100,100),60,WW-60),y:up>0?WH-rand(70,200):rand(70,200)}};
-  if(role==='flank')k.wp={x:clamp(en.hx-en.dir*rand(250,420),60,WW-60),y:up>0?WH-rand(60,160):rand(60,160)};
+    wp:null};
+  {const q=role==='flank'?fwd(en,rand(250,420),up*rand(420,620)):fwd(en,rand(80,260),up*rand(300,460));k.wp={x:clamp(q.x,60,WW-60),y:clamp(q.y,60,WH-60)};}
+  k.fslot=group?crafts.filter(q=>q.side===c.side&&q.group===group&&!q.flee).length:0;if(k.fslot>0){const lead=crafts.find(q=>q.side===c.side&&q.group===group&&q.fslot===0);if(lead)k.wp={...lead.wp};}
   crafts.push(k);Snd.play('launch',.4,c.x);
 }
 function bolt(x,y,a,spd,side,kind,dmg,cdmg,col,life,en){
@@ -348,7 +432,11 @@ function bolt(x,y,a,spd,side,kind,dmg,cdmg,col,life,en){
 function boom(x,y,n,size,col){
   for(let i=0;i<n;i++){const a=rand(0,6.28),s=rand(.2,1)*size,l=rand(.3,.9)*size*.25+.2;parts.push({x,y,vx:Math.cos(a)*s*60,vy:Math.sin(a)*s*60,life:l,max:l,r:rand(1,3)*size*.5,col});}
   const fl=.25*size*.25+.1;parts.push({x,y,vx:0,vy:0,life:fl,max:fl,r:size*2.2,col:'#fff',flash:true});
+  if(size>=2){ring(x,y,size*2,size*14,col,.35+size*.05,1.5);for(let i=0;i<size*2;i++){const a=rand(0,6.28),v=rand(120,260)*size*.3;debris.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:rand(.3,.8),max:.8,len:rand(4,10),col:Math.random()<.5?'#fff':col});}}
+  if(size>=5)ring(x,y,size,size*30,'#ffffff',.6,3);
 }
+function spawnPods(c,n){for(let i=0;i<n;i++){const q=wp(c,rand(-140,140)*K/2.5,rand(-30,30)*K/2.5);const a=(c.dir>0?Math.PI:0)+rand(-.9,.9);
+  pods.push({x:q.x,y:q.y,vx:Math.cos(a)*rand(40,90),vy:Math.sin(a)*rand(40,90)+rand(-30,30),a,life:rand(14,22),col:c.col,t:rand(0,6)});}}
 
 /* ================= МОДЕЛЬ КОРАБЛЯ ================= */
 function buildShipCanvas(c){
@@ -367,32 +455,36 @@ function buildShipCanvas(c){
 }
 function fragmentShip(c){const nx=9,ny=3,pw=c.cw/nx,ph=c.ch/ny;
   for(let i=0;i<nx;i++)for(let j=0;j<ny;j++){if(Math.random()<.12)continue;const lx=(i+.5)*pw-c.cw/2,ly=(j+.5)*ph-c.ch/2;const a=Math.atan2(ly,lx)+rand(-.6,.6),s=rand(25,110),life=rand(7,11);
-    frags.push({c,sx:i*pw,sy:j*ph,sw:pw,sh:ph,x:c.x+lx*c.dir,y:c.y+ly,vx:Math.cos(a)*s*c.dir+rand(-15,15),vy:Math.sin(a)*s+rand(-15,15),rot:rand(0,6.28),vr:rand(-1.5,1.5),life,max:life,burn:Math.random()<.5});}}
+    const w0=wp(c,lx,ly);frags.push({c,sx:i*pw,sy:j*ph,sw:pw,sh:ph,x:w0.x,y:w0.y,vx:Math.cos(a+c.rot)*s*c.dir+rand(-15,15),vy:Math.sin(a+c.rot)*s+rand(-15,15),rot:c.rot+rand(-.3,.3),vr:rand(-1.5,1.5),life,max:life,burn:Math.random()<.5});}}
 
 /* ================= ТАКТИКИ ================= */
 // Елементи черги: [клас, роль, група]. Ролі: cap патруль · sweep зачистка→турелі · escort супровід бомберів · guard охорона канонерок
 // · convoy конвой власного корабля · screen щитоносці (прикривають корпус від головного калібру) · bait приманка · flank обхід у тил · gun канонерка · hunt елітне полювання · raid бомбери
-const Q={cap:n=>Array(n).fill(['interceptor','cap']),sweep:n=>Array(n).fill(['interceptor','sweep']),esc:(n,g)=>Array(n).fill(['interceptor','escort',g]),guard:(n,g)=>Array(n).fill(['interceptor','guard',g]),
-  convoy:n=>Array(n).fill(['interceptor','convoy']),screen:n=>Array(n).fill(['shieldship','screen']),ace:(n,g)=>Array(n).fill(['ace','hunt',g]),
-  bait:(n,g)=>Array(n).fill(['bait','bait',g]),flank:(n,g)=>Array(n).fill(['flanker','flank',g]),gun:(n,g)=>Array(n).fill(['gunship','gun',g]),bomb:(n,g)=>Array(n).fill(['bomber','raid',g])};
+const FS=()=>CONFIG.fleetScale||1,NN=n=>Math.max(1,Math.round(n*FS()));
+const Q={cap:n=>Array(NN(n)).fill(['interceptor','cap']),sweep:n=>Array(NN(n)).fill(['interceptor','sweep']),esc:(n,g)=>Array(NN(n)).fill(['interceptor','escort',g]),guard:(n,g)=>Array(NN(n)).fill(['interceptor','guard',g]),
+  convoy:n=>Array(NN(n)).fill(['interceptor','convoy']),screen:n=>Array(NN(n)).fill(['shieldship','screen']),ace:(n,g)=>Array(NN(n)).fill(['ace','hunt',g]),
+  bait:(n,g)=>Array(NN(n)).fill(['bait','bait',g]),flank:(n,g)=>Array(NN(n)).fill(['flanker','flank',g]),gun:(n,g)=>Array(NN(n)).fill(['gunship','gun',g]),bomb:(n,g)=>Array(NN(n)).fill(['bomber','raid',g]),
+  bsh:(n,g)=>Array(NN(n)).fill(['shieldship','bshield',g])}; // bshield — щитоносці попереду бомберів/канонерок групи
+function recall(c,until,msg){c.recallUntil=until;radio(c.cs,msg||'Відступ! Усім МЛА — назад під зенітки, перегрупування.',c.col);c.recallSaid=false;}
 const SQ=c=>`ЕСКАДРИЛЬЯ «${c.squad}»`;
 // hangar — склад ангара саме для цієї тактики (масштабується під тривалість завантаження); reserve — екстрений резерв при падінні щита
 const TACTICS={
-  strike:{name:'Ударна група',brief:'Штурмовики тягнуть вогонь зеніток, обхідна ланка заходить у тил, бомбери — на генератор щита, далі турелі, далі корпус.',prio:['gen','heavy','hull'],fire:.55,
-    hangar:{interceptor:9,bait:5,flanker:7,bomber:8},reserve:{interceptor:3},
+  strike:{name:'Ударна група',brief:'Штурмовики тягнуть вогонь зеніток, обхідна ланка заходить у тил, бомбери — на генератор щита, далі турелі, далі корпус.',prio:['gen','heavy','hull'],fire:.55,holdFormation:true,
+    hangar:{interceptor:9,bait:5,flanker:7,shieldship:4,bomber:8},reserve:{interceptor:3},
     plan(c,ev,en){ev(.035,()=>{c.queue.push(...Q.cap(2));radio(c.cs,`${SQ(c)}, пара на патруль. Решта — чекати, формуємо ударну групу.`,c.col);});
       ev(.12,()=>{c.queue.push(...Q.bait(3,1),...Q.flank(3,1));radio(c.cs,`Ударна група, пуск. Штурмовики — в лоб на зенітки ${en.name}. Обхідна ланка — краєм, у тил.`,c.col);});
-      ev(.2,()=>{c.queue.push(...Q.bomb(3,2),...Q.esc(2,2));radio(c.cs,`Група «Молот», пуск. Ціль номер один — генератор щита.`,c.col);});
-      ev(.4,()=>{c.queue.push(...Q.bait(2,3),...Q.flank(3,3),...Q.bomb(3,3),...Q.esc(1,3));radio(c.cs,`Друга хвиля. Генератор, якщо живий, інакше турелі — від найслабшої.`,c.col);});
+      ev(.2,()=>{c.queue.push(...Q.bsh(2,2),...Q.bomb(3,2),...Q.esc(2,2));radio(c.cs,`Група «Молот», пуск. Щитоносці попереду, бомбери — за ними строєм. Ціль — генератор щита.`,c.col);});
+      ev(.33,()=>{recall(c,.38,'Перша хвиля — назад під зенітки. Перегрупування, друга хвиля формується.');});
+      ev(.4,()=>{c.queue.push(...Q.bait(2,3),...Q.flank(3,3),...Q.bsh(2,3),...Q.bomb(3,3),...Q.esc(1,3));radio(c.cs,`Друга хвиля. Генератор, якщо живий, інакше турелі — від найслабшої.`,c.col);});
       ev(.6,()=>{c.queue.push(...Q.flank(2,4),...Q.bomb(2,4),...Q.esc(1,4));radio(c.cs,`Третя хвиля. Головний калібр, потім корпус.`,c.col);});
       ev(.8,()=>{c.queue.push(...Q.bomb(2,5),...Q.sweep(2));radio(c.cs,`Усе, що лишилось — на корпус.`,c.col);});}},
-  artillery:{name:'Артилерійська дуель',brief:'Щитоносці прикривають корпус, перехоплювачі конвоєм, бій веде головний калібр. Бомбери — коли щит ворога впаде.',prio:['heavy','hull'],fire:1.0,
-    hangar:{interceptor:10,shieldship:4,bait:2,bomber:7},reserve:{interceptor:2,ace:1},
+  artillery:{name:'Артилерійська дуель',brief:'Щитоносці стоять стіною перед корпусом, перехоплювачі конвоєм, бій веде головний калібр. Бомбери — коли щит ворога впаде.',prio:['heavy','hull'],fire:1.0,screenFixed:true,
+    hangar:{interceptor:10,shieldship:6,bait:2,bomber:7},reserve:{interceptor:2,ace:1},
     plan(c,ev,en){ev(.035,()=>{c.queue.push(...Q.screen(3),...Q.convoy(3));radio(c.cs,`Щитоносці — на лінію вогню, прикрити корпус від їхнього головного калібру. Конвой — навколо корабля.`,c.col);});
       ev(.1,()=>{radio(c.cs,`Батареї головного калібру: безперервний вогонь по щиту ${en.name}.`,c.col);});
       ev(.3,()=>{c.queue.push(...Q.sweep(3),...Q.screen(1));radio(c.cs,`${SQ(c)}, ланка на зачистку. Їхні бомбери не повинні дійти.`,c.col);});
       ev(.5,()=>{c.queue.push(...Q.cap(2));c.fireRate=1.3;radio(c.cs,'Гармати — максимальний темп.',c.col);});
-      ev(.72,()=>{c.queue.push(...Q.bait(2,5),...Q.bomb(4,5),...Q.esc(2,5));radio(c.cs,`Штурмовики відволікають, бомбери — на великі турелі ${en.name}.`,c.col);});
+      ev(.72,()=>{c.queue.push(...Q.bait(2,5),...Q.bsh(2,5),...Q.bomb(4,5),...Q.esc(2,5));radio(c.cs,`Штурмовики відволікають, щитоносці попереду, бомбери — на великі турелі ${en.name}.`,c.col);});
       ev(.86,()=>{c.queue.push(...Q.bomb(3,6));radio(c.cs,'Другий заліт. Корпус.',c.col);});}},
   swarm:{name:'Рій',brief:'Масовий підйом МЛА на початку. Перевантажити зенітки кількістю.',prio:['light','gen','hull'],fire:.5,
     hangar:{interceptor:16,bait:3,flanker:4,bomber:9},reserve:{interceptor:2},
@@ -409,7 +501,7 @@ const TACTICS={
       ev(.48,()=>{c.queue.push(...Q.bait(3,3),...Q.flank(3,3),...Q.bomb(4,3),...Q.esc(2,3));radio(c.cs,`Контратака! Штурмовики в лоб, обхідні в тил, бомбери — генератор ${en.name}.`,c.col);});
       ev(.7,()=>{c.queue.push(...Q.bomb(3,4),...Q.flank(2,4),...Q.bait(1,4));radio(c.cs,`Друга хвиля контратаки. Великі турелі, далі корпус.`,c.col);});
       ev(.86,()=>{c.queue.push(...Q.bomb(1,5),...Q.sweep(3));radio(c.cs,'Резерв — у бій. Добити.',c.col);});}},
-  gunline:{name:'Канонерський кулак',brief:'Важкі канонерки з потужними гарматами йдуть на турелі під охороною перехоплювачів. Бомбери добивають генератор.',prio:['gen','heavy','hull'],fire:.6,
+  gunline:{name:'Канонерський кулак',brief:'Важкі канонерки з потужними гарматами йдуть на турелі під охороною перехоплювачів. Бомбери добивають генератор.',prio:['gen','heavy','hull'],fire:.6,holdFormation:true,
     hangar:{interceptor:11,gunship:6,bomber:7},reserve:{interceptor:2,gunship:1},
     plan(c,ev,en){ev(.035,()=>{c.queue.push(...Q.cap(2));});
       ev(.11,()=>{c.queue.push(...Q.gun(2,1),...Q.guard(3,1));radio(c.cs,`Канонерки «Молот-1», «Молот-2» — пуск. Охорона: три перехоплювачі. Ціль — зенітки ${en.name}.`,c.col);});
@@ -417,11 +509,11 @@ const TACTICS={
       ev(.5,()=>{c.queue.push(...Q.sweep(2));radio(c.cs,`${SQ(c)}, зачистити їхні винищувачі над кораблем.`,c.col);});
       ev(.66,()=>{c.queue.push(...Q.gun(2,3),...Q.guard(2,3),...Q.bomb(3,3));radio(c.cs,`Третя група. Канонерки — на головний калібр, бомбери — корпус.`,c.col);});
       ev(.84,()=>{c.queue.push(...Q.bomb(2,4));radio(c.cs,'Останні бомбери. Реакторний відсік.',c.col);});}},
-  decap:{name:'Обезголовлення',brief:'Рання масована атака бомберів на генератор щита під щільним ескортом; поки щит не впав, нічого іншого не робити.',prio:['gen','heavy','hull'],fire:.45,
-    hangar:{interceptor:11,flanker:4,bait:2,bomber:10},reserve:{interceptor:3},
+  decap:{name:'Обезголовлення',brief:'Рання масована атака бомберів на генератор щита під щільним ескортом; поки щит не впав, нічого іншого не робити.',prio:['gen','heavy','hull'],fire:.45,holdFormation:true,
+    hangar:{interceptor:11,flanker:4,bait:2,shieldship:4,bomber:10},reserve:{interceptor:3},
     plan(c,ev,en){ev(.035,()=>{c.queue.push(...Q.cap(2));});
       ev(.1,()=>{c.queue.push(...Q.sweep(3));radio(c.cs,`${SQ(c)}, перехоплювачі — розчистити коридор до ${en.name}.`,c.col);});
-      ev(.17,()=>{c.queue.push(...Q.bomb(5,1),...Q.esc(4,1));radio(c.cs,`П'ять бомберів, чотири ескорту. Ціль одна — генератор щита. Нічого іншого не чіпати.`,c.col);});
+      ev(.17,()=>{c.queue.push(...Q.bsh(3,1),...Q.bomb(5,1),...Q.esc(4,1));radio(c.cs,`П'ять бомберів, три щитоносці попереду, чотири ескорту. Ціль одна — генератор щита. Тримати стрій!`,c.col);});
       ev(.4,()=>{c.queue.push(...Q.bomb(3,2),...Q.esc(2,2),...Q.flank(2,2));radio(c.cs,`Друга група на генератор. Обхідні — зенітки в тилу.`,c.col);});
       ev(.6,()=>{c.fireRate=.9;c.queue.push(...Q.bait(2,3),...Q.bomb(2,3));radio(c.cs,`Щит їхній на межі. Головний калібр — повний темп, бомбери на турелі.`,c.col);});
       ev(.82,()=>{c.queue.push(...Q.flank(2,4));radio(c.cs,'Обхідні — на турелі. Добиваємо.',c.col);});}},
@@ -430,24 +522,26 @@ const TACTICS={
     plan(c,ev,en){ev(.035,()=>{c.queue.push(...Q.cap(3),...Q.screen(2));radio(c.cs,`${SQ(c)}, трійка на патруль, щитоносці — на лінію вогню. Працюємо парами.`,c.col);});
       ev(.14,()=>{c.queue.push(...Q.sweep(2));radio(c.cs,`Пара на полювання. Ціль — їхні бомбери на підльоті.`,c.col);});
       ev(.3,()=>{c.queue.push(...Q.sweep(2),...Q.cap(1));radio(c.cs,`Ще пара. Міняємось, хто з пошкодженнями — назад під зенітки.`,c.col);});
+      ev(.4,()=>{recall(c,.45,'Пошкоджені — на ремонт, решта назад під корабель. Перегрупування.');});
       ev(.46,()=>{c.queue.push(...Q.sweep(3),...Q.screen(1));radio(c.cs,`Їхні втрати ростуть. Трійка на зачистку над ${en.name}.`,c.col);});
       ev(.62,()=>{c.queue.push(...Q.bomb(3,2),...Q.esc(2,2),...Q.bait(1,2));radio(c.cs,`Небо наше. Бомбери — на великі турелі, ескорт щільний.`,c.col);});
       ev(.8,()=>{c.queue.push(...Q.bomb(4,3),...Q.sweep(1));radio(c.cs,`Усі бомбери. Генератор, корпус.`,c.col);});}},
-  pincer:{name:'Кліщі',brief:'Дві обхідні групи одночасно зверху й знизу, штурмовики в центрі тримають зенітки, бомбери заходять з обох флангів.',prio:['light','gen','hull'],fire:.55,
+  pincer:{name:'Кліщі',brief:'Дві обхідні групи одночасно зверху й знизу, штурмовики в центрі тримають зенітки, бомбери заходять з обох флангів.',prio:['light','gen','hull'],fire:.55,holdFormation:true,
     hangar:{interceptor:6,bait:3,flanker:10,bomber:8},reserve:{interceptor:2},
     plan(c,ev,en){ev(.035,()=>{c.queue.push(...Q.cap(2));});
       ev(.13,()=>{c.queue.push(...Q.bait(2,1));radio(c.cs,`Штурмовики — в центр, тримати їхню увагу.`,c.col);});
       ev(.18,()=>{c.queue.push(...Q.flank(3,2),...Q.flank(3,3));radio(c.cs,`Кліщі: ланка «Верх» і ланка «Низ» — пуск. Зустрічаємось у них на кормі.`,c.col);});
+      ev(.3,()=>{recall(c,.34,'Кліщі — розтиснути! Назад на рубіж, бомбери готуються.');});
       ev(.34,()=>{c.queue.push(...Q.bomb(2,4),...Q.esc(1,4),...Q.bomb(2,5),...Q.esc(1,5));radio(c.cs,`Бомбери з обох флангів. Зенітки подавлені — на генератор.`,c.col);});
       ev(.55,()=>{c.queue.push(...Q.flank(2,6),...Q.bomb(3,6),...Q.bait(1,6));radio(c.cs,`Друге стискання. Турелі від найслабшої, потім головний калібр.`,c.col);});
       ev(.78,()=>{c.queue.push(...Q.bomb(1,7),...Q.flank(2,7),...Q.sweep(2));radio(c.cs,'Корпус. Добити.',c.col);});}},
-  hedgehog:{name:'Їжак',brief:'Глуха оборона: конвой і щитоносці навколо корабля, головний калібр у повному темпі, удар бомберами лише коли ангар ворога порожній.',prio:['heavy','hull'],fire:1.2,
+  hedgehog:{name:'Їжак',brief:'Глуха оборона: конвой і стіна щитоносців навколо корабля, головний калібр у повному темпі, удар бомберами лише коли ангар ворога порожній.',prio:['heavy','hull'],fire:1.2,screenFixed:true,
     hangar:{interceptor:14,shieldship:5,bait:1,flanker:2,bomber:8},reserve:{interceptor:2,ace:2},
     plan(c,ev,en){ev(.035,()=>{c.queue.push(...Q.convoy(4),...Q.screen(3));radio(c.cs,`${SQ(c)}, конвой навколо корабля, щитоносці — на лінію вогню. Оборонний ордер. Бій веде артилерія.`,c.col);});
       ev(.25,()=>{c.queue.push(...Q.cap(3),...Q.screen(2));radio(c.cs,`Ще три борти в оборону. Зенітки — вогонь по всьому, що в радіусі.`,c.col);});
       ev(.5,()=>{c.queue.push(...Q.cap(2));c.fireRate=1.5;radio(c.cs,`Тримаємо. Їхні МЛА згорають об нашу оборону.`,c.col);});
       ev(.7,()=>{c.queue.push(...Q.sweep(3));radio(c.cs,`Їхній ангар майже порожній. Трійка на зачистку.`,c.col);});
-      ev(.8,()=>{c.queue.push(...Q.bomb(5,2),...Q.esc(2,2),...Q.bait(1,2));radio(c.cs,`Тепер наш хід. Усі бомбери — на ${en.name}, великі турелі, далі корпус.`,c.col);});
+      ev(.8,()=>{c.queue.push(...Q.bsh(3,2),...Q.bomb(5,2),...Q.esc(2,2),...Q.bait(1,2));radio(c.cs,`Тепер наш хід. Щитоносці зі строю — вперед, усі бомбери за ними на ${en.name}.`,c.col);});
       ev(.9,()=>{c.queue.push(...Q.bomb(3,3),...Q.flank(2,3));radio(c.cs,'Другий удар. Корпус.',c.col);});}},
   blitz:{name:'Бліц',brief:'Усе й одразу: штурмовики, обхідні, канонерки й бомбери однією хвилею на початку. Далі — артилерія.',prio:['gen','light','heavy','hull'],fire:.5,
     hangar:{interceptor:7,bait:3,flanker:3,gunship:2,bomber:10},reserve:{interceptor:3},
@@ -456,12 +550,12 @@ const TACTICS={
       ev(.35,()=>{c.fireRate=.9;radio(c.cs,`Хвиля відпрацювала. Головний калібр — повний темп, тримаємо дистанцію.`,c.col);});
       ev(.55,()=>{c.queue.push(...Q.bomb(3,2),...Q.esc(2,2));radio(c.cs,`Бомбери знову заряджені. Великі турелі.`,c.col);});
       ev(.78,()=>{c.queue.push(...Q.bomb(2,3));radio(c.cs,'Останні. Корпус.',c.col);});}},
-  suppress:{name:'Подавлення ППО',brief:'Канонерки і штурмовики методично вибивають зенітки, і лише після цього бомбери безпечно йдуть на генератор і турелі.',prio:['light','gen','heavy','hull'],fire:.6,
-    hangar:{interceptor:8,bait:4,gunship:4,flanker:3,bomber:8},reserve:{interceptor:2,gunship:1},
+  suppress:{name:'Подавлення ППО',brief:'Канонерки і штурмовики методично вибивають зенітки, і лише після цього бомбери безпечно йдуть на генератор і турелі.',prio:['light','gen','heavy','hull'],fire:.6,holdFormation:true,
+    hangar:{interceptor:8,bait:4,gunship:4,flanker:3,shieldship:2,bomber:8},reserve:{interceptor:2,gunship:1},
     plan(c,ev,en){ev(.035,()=>{c.queue.push(...Q.cap(2));});
       ev(.1,()=>{c.queue.push(...Q.bait(2,1),...Q.gun(2,1),...Q.guard(2,1));radio(c.cs,`Група подавлення: штурмовики тягнуть вогонь, канонерки знімають зенітки ${en.name} одну за одною.`,c.col);});
       ev(.3,()=>{c.queue.push(...Q.gun(1,2),...Q.guard(1,2),...Q.flank(2,2));radio(c.cs,`Обхідні — на зенітки в кормі. Доповідати по кожній знищеній.`,c.col);});
-      ev(.48,()=>{c.queue.push(...Q.bomb(4,3),...Q.esc(2,3));radio(c.cs,`ППО подавлено. Бомбери — на генератор, спокійно, без поспіху.`,c.col);});
+      ev(.48,()=>{c.queue.push(...Q.bsh(2,3),...Q.bomb(4,3),...Q.esc(2,3));radio(c.cs,`ППО подавлено. Бомбери строєм за щитоносцями — на генератор, спокійно, без поспіху.`,c.col);});
       ev(.66,()=>{c.queue.push(...Q.bomb(3,4),...Q.gun(1,4),...Q.guard(1,4));radio(c.cs,`Великі турелі. Канонерки добивають.`,c.col);});
       ev(.84,()=>{c.queue.push(...Q.bomb(1,5),...Q.bait(2,5),...Q.flank(1,5));radio(c.cs,'Корпус.',c.col);});}}
 };
@@ -472,10 +566,10 @@ const PH=[[0,'Зближення'],[.1,'Дуель винищувачів'],[.3,
 function planBattle(){
   const w=CONFIG.winner===0||CONFIG.winner===1?CONFIG.winner:(Math.random()<.5?0:1);winner=cruisers[w];loser=cruisers[1-w];
   const Wn=winner,Ln=loser,j=()=>rand(-.025,.025);
-  loser.shieldFallAt=.70+j();winner.shieldFallAt=.86+j();
+  loser.shieldFallAt=.70+j();winner.shieldFallAt=.86+j();if(FAIR){loser.shieldFallAt=9;winner.shieldFallAt=9;}
   const ev=(at,fn)=>script.push({at:clamp(at,0,.995),fn,done:false});
   const keys=Object.keys(TACTICS);
-  cruisers.forEach((c,i)=>{const k=CONFIG.tactics&&run===0&&CONFIG.tactics[i]||pick(keys.filter(k=>k!==prevTactics[i]));prevTactics[i]=k;c.tactic=TACTICS[k];c.fireRate=c.tactic.fire;c.hangar={...c.tactic.hangar};c.reserve={...c.tactic.reserve};
+  cruisers.forEach((c,i)=>{const k=CONFIG.tactics&&run===0&&CONFIG.tactics[i]||pick(keys.filter(k=>k!==prevTactics[i]));prevTactics[i]=k;c.tactic=TACTICS[k];c.fireRate=c.tactic.fire;c.hangar={};for(const q in c.tactic.hangar)c.hangar[q]=Math.round(c.tactic.hangar[q]*(CONFIG.fleetScale||1));c.reserve={...c.tactic.reserve};
     document.getElementById('tac'+i).textContent=c.tactic.name;c.tactic.plan(c,(at,fn)=>ev(at+rand(-.015,.015),fn),cruisers[1-i]);});
   const A=c=>c.cs;
   ev(.005,()=>{radio('ЦЕНТР',`Два крейсери вийшли з гіперпростору. Дистанція ${Math.round(rand(80,120))} тис. км.`,'#ffe81f',1);});
@@ -483,12 +577,14 @@ function planBattle(){
   ev(.08,()=>{cruisers.forEach(c=>c.canFire=true);radio(A(Wn),'Дистанція ефективна. Головний калібр — вогонь!',Wn.col);radio(A(Ln),'Турболазери — вогонь по готовності. Тримати щити.',Ln.col);});
   ev(.25+j(),()=>{radio(SQ(pick(cruisers)),pick(['Зайнятий, зайнятий! Двоє на хвості!','Є один! Горить!','Головний калібр по мені — пройшов повз, ухилився.']),'#e6f3ff');});
   ev(.45+j(),()=>{radio(SQ(pick(cruisers)),pick(['Торпеди пішли! Є влучання!','Під щитом, бачу генератор. Пуск!','Зенітка щільна, втратили двійку!']),'#e6f3ff');});
+  ev(loser.shieldFallAt-.11,()=>{recall(Ln,loser.shieldFallAt-.04,'Відступ! Усім МЛА — назад під гармати. Перегрупування біля корабля.');});
+  ev(loser.shieldFallAt-.04,()=>{radio(A(Ln),'Перегрупувались. Контратака — усі разом, строєм!',Ln.col);});
   ev(loser.shieldFallAt,()=>{if(!Ln.shieldDown){radio(A(Ln),'Генератор щитів перевантажено! Щит іде!',Ln.col);shieldCollapse(Ln);}radio(A(Wn),'Їхні щити впали. Усім МЛА — по турелях, від найслабшої!',Wn.col);});
   ev(winner.shieldFallAt,()=>{if(!Wn.shieldDown){radio(A(Wn),'Генератор на межі… Щит втрачено. Тримаємо корпус!',Wn.col);shieldCollapse(Wn);}radio(A(Ln),'Їхній щит теж впав! Усе що лишилось — по їхніх турелях!',Ln.col);});
   // елітна ланка переможця під кінець завантаження
-  ev(.88,()=>{Wn.hangar.ace=(Wn.hangar.ace||0)+3;Wn.queue.push(...Q.ace(3,8));radio(A(Wn),`Елітна ескадрилья «${Wn.squad}-ПРАЙМ» — на старт. Зачистити небо і добити турелі.`,Wn.col);});
+  if(!FAIR)ev(.88,()=>{Wn.hangar.ace=(Wn.hangar.ace||0)+3;Wn.queue.push(...Q.ace(3,8));radio(A(Wn),`Елітна ескадрилья «${Wn.squad}-ПРАЙМ» — на старт. Зачистити небо і добити турелі.`,Wn.col);});
   ev(.9+j(),()=>{radio(A(Ln),pick(['Пробоїна в реакторному! Втрачаємо тягу!','Пожежа на третій палубі, корпус тріщить!']),Ln.col);});
-  ev(.93,()=>{Wn.fireRate=Math.max(Wn.fireRate,1.6);Wn.hangar.bomber=(Wn.hangar.bomber||0)+2;Wn.queue.push(...Q.bomb(2,9));radio(A(Wn),`Усім кораблям — фінальний штурм. Добити.`,Wn.col);});
+  if(!FAIR)ev(.93,()=>{Wn.fireRate=Math.max(Wn.fireRate,1.6);Wn.hangar.bomber=(Wn.hangar.bomber||0)+2;Wn.queue.push(...Q.bomb(2,9));radio(A(Wn),`Усім кораблям — фінальний штурм. Добити.`,Wn.col);});
   ev(.965,()=>{radio(A(Ln),pick(['Реактор критичний… Усім залишити корабель!','Це кінець. Евакуація. Честь була служити з вами.']),Ln.col);});
   ev(.995,()=>{radio('ЦЕНТР',`Сигнал крейсера ${Ln.name} втрачено.`,'#ffe81f',1);});
 }
@@ -498,16 +594,18 @@ function runScript(p){for(const e of script){if(!e.done&&p>=e.at){e.done=true;e.
 function applyTempo(){const D=load.est,scale=clamp(Math.pow(D/100,.8)*1.15,.6,2.6);DM=clamp(Math.sqrt(100/D),.6,2.2);
   cruisers.forEach(c=>{for(const k in c.hangar)c.hangar[k]=Math.max(1,Math.round(c.hangar[k]*scale));for(const k in c.reserve)c.reserve[k]=Math.max(1,Math.round(c.reserve[k]*scale));});}
 
+function startWarp(){warp=0;document.getElementById('result').style.opacity=0;cruisers.forEach(c=>{if(c.alive&&!c.gone)c.warpOut=0;});radio('ЦЕНТР','Переможець іде в гіперпростір. Нова пара крейсерів на підході.','#ffe81f',1);crafts.forEach(k=>{k.flee=true;});}
+function setRot(){const a=Math.atan2(cruisers[1].hy-cruisers[0].hy,cruisers[1].hx-cruisers[0].hx);cruisers.forEach(c=>c.rot=a);}
 function restartBattle(){
   run++;runT=T;battle.D=clamp(load.est,70,160);resultShown=false;document.getElementById('result').style.opacity=0;
-  crafts.length=0;bolts.length=0;parts.length=0;ripples.length=0;frags.length=0;script=[];phaseName='';radioQ=[];rl.innerHTML='';
-  cruisers.length=0;cruisers.push(mkCruiser(0),mkCruiser(1));cruisers.forEach(c=>{c.hullW=c.hullL.map(q=>[c.x+q[0]*c.dir,c.y+q[1]]);c.shieldW=c.shieldL.map(q=>[c.x+q[0]*c.dir,c.y+q[1]]);});
-  planBattle();applyTempo();load.disp=0;
+  crafts.length=0;bolts.length=0;parts.length=0;ripples.length=0;frags.length=0;rings.length=0;pods.length=0;debris.length=0;script=[];phaseName='';radioQ=[];rl.innerHTML='';
+  cruisers.length=0;cruisers.push(mkCruiser(0),mkCruiser(1));cruisers.forEach(c=>{c.hullW=c.hullL.map(q=>{const w=wp(c,q[0],q[1]);return [w.x,w.y];});c.shieldW=c.shieldL.map(q=>{const w=wp(c,q[0],q[1]);return [w.x,w.y];});});
+  setRot();planBattle();applyTempo();load.disp=0;
   radio('ЦЕНТР',`Завантаження триває. Нова пара крейсерів виходить з гіперпростору — бій №${run+1}.`,'#ffe81f',1);}
 
 /* ================= ШІ КРЕЙСЕРА ================= */
 function brain(c,en){
-  const p=load.disp;if(p<.1)return;
+  const p=load.disp;if(p<.03)return;
   const mine=crafts.filter(k=>k.side===c.side&&!k.flee),theirs=crafts.filter(k=>k.side!==c.side&&!k.flee);
   const myF=mine.filter(k=>k.type!=='bomber'&&k.type!=='shieldship').length;
   const near=theirs.filter(k=>Math.hypot(k.x-c.x,k.y-c.y)<750);
@@ -516,103 +614,164 @@ function brain(c,en){
   const need=Math.ceil(thB*1.3+thF*.6)-myF-qF;
   if(need>0&&(c.hangar.interceptor||0)-qF>0){const n=Math.min(need,3,c.hangar.interceptor-qF);c.queue.push(...Q.cap(n));
     if(n>=2)radio(c.cs,pick([`Підняти ще ${n} перехоплювачі. Бомбери на підході!`,`Ангар, ${n} борти на старт, негайно.`]),c.col);}
+  { // постійна охорона корабля: мінімум конвою завжди в повітрі
+    const minC=Math.round(2*FS()),nC=crafts.filter(k=>k.side===c.side&&k.role==='convoy'&&!k.flee&&k.state!=='retreat').length+c.queue.filter(q=>q[1]==='convoy').length;
+    if(nC<minC&&(c.hangar.interceptor||0)>0){c.queue.unshift(...Q.convoy(Math.min(minC-nC,c.hangar.interceptor)));}}
   c.raidCd-=.8;
   if(en.alive&&en.shieldDown&&(c.hangar.bomber||0)-qB>=2&&c.raidCd<=0&&mine.filter(k=>k.type==='bomber').length<3){
     c.raidCd=25;c.queue.push(...Q.bomb(Math.min(c.hangar.bomber-qB,2),9));
     radio(c.cs,`Бачу вікно: ${en.name} без щита. Ланка бомберів — ${alive(en,'heavy').length?'на головний калібр':'на корпус'}.`,c.col);}
   if(c.hull<.5)emergencyReserve(c);
+  if(c.repaired>=3&&en.alive){c.repaired=0;c.queue.push(...Q.sweep(2));radio(c.cs,'Відремонтовані борти — знову в бій.',c.col);}
 }
 function updCruiser(c,dt){
   const en=cruisers[1-c.side],p=load.disp;
   if(!c.alive){c.dying+=dt;
     if(c.dying<2.8){c.x+=rand(-3,3);c.y+=rand(-3,3);shake=Math.max(shake,4);
       if(Math.random()<.6){const q=wp(c,rand(-160,160),rand(-40,40));boom(q.x,q.y,12,rand(2,5),Math.random()<.5?'#ffb060':c.col);if(Math.random()<.3)Snd.play('explosion',.6,c.x);}}
-    else if(!c.gone){c.gone=true;fragmentShip(c);boom(c.x,c.y,160,14,'#ffd080');boom(c.x,c.y,80,9,'#fff');shake=40;Snd.play('bigExplosion',1,c.x);
+    else if(!c.gone){c.gone=true;fragmentShip(c);boom(c.x,c.y,160,14,'#ffd080');boom(c.x,c.y,80,9,'#fff');ring(c.x,c.y,30,900,'#ffd080',1.4,6);ring(c.x,c.y,10,600,'#ffffff',.9,10);shake=40;Snd.play('bigExplosion',1,c.x);
       for(let i=0;i<40;i++){const a=rand(0,6.28),s=rand(100,400);parts.push({x:c.x,y:c.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(1,2.5),max:2.5,r:rand(2,5),col:pick(['#fff','#ffd080','#ff8040',c.col])});}}
     return;}
-  c.x+=(c.hx-c.x)*dt*.3;c.y=WH*.5+Math.sin(T*.35+c.bob)*22;
-  c.hullW=c.hullL.map(q=>[c.x+q[0]*c.dir,c.y+q[1]]);c.shieldW=c.shieldL.map(q=>[c.x+q[0]*c.dir,c.y+q[1]]);
+  if(c.warpIn<1){ // вихід з гіперпростору: миттєвий спалах, корабель вилітає з короткої світлової смуги і різко гальмує
+    if(c.warpIn===0){c.warpT=0;ring(c.hx-Math.cos(fwdAngle(c))*120,c.hy-Math.sin(fwdAngle(c))*120,20,300,'#ffffff',.5,3);Snd.play('warp',.7,c.hx,true);shake=6;}
+    c.warpT+=dt;c.warpIn=Math.min(1,c.warpT/.45);const e=1-Math.pow(1-c.warpIn,4);const fa=fwdAngle(c);c.x=c.hx-Math.cos(fa)*900*(1-e);c.y=c.hy-Math.sin(fa)*900*(1-e);
+    if(c.warpIn>=1){c.shieldUp=0.001;radio(c.cs,'Вийшли з гіперпростору. Дефлектори — підняти!',c.col);}}
+  else if(c.warpOut>=0){if(c.warpOut===0){const q=fwd(c,c.len*.4,0);ring(q.x,q.y,20,360,'#ffffff',.5,3);}c.warpOut+=dt;const e=Math.pow(Math.min(1,c.warpOut/.5),3);const fa=fwdAngle(c);c.x+=Math.cos(fa)*(400+e*9000)*dt;c.y+=Math.sin(fa)*(400+e*9000)*dt;if(c.warpOut>.55&&!c.gone){c.gone=true;}}
+  else{c.x+=(c.hx-c.x)*dt*.3;c.y=c.hy+Math.sin(T*.35+c.bob)*22;if(c.shieldUp>0&&c.shieldUp<1){c.shieldUp=Math.min(1,c.shieldUp+dt/1.3);if(c.shieldUp>=1){ring(c.x,c.y,c.len*.3,c.len*.9,CONFIG.shieldColor||c.col,.6,2);Snd.play('shieldHit',.6,c.x);}}}
+  c.hullW=c.hullL.map(q=>{const w=wp(c,q[0],q[1]);return [w.x,w.y];});c.shieldW=c.shieldL.map(q=>{const w=wp(c,q[0],q[1]);return [w.x,w.y];});
   if(!c.shieldDown&&c.shield<=0)shieldCollapse(c);
-  if(c.shieldDown){const t0=c.shieldFellAt,t1=c===loser?.985:1.0,fl=c===loser?0:.35;const f=clamp((p-t0)/(t1-t0),0,1);const floor=1-(1-fl)*f;c.hull=clamp(c.hull,floor,floor+.07);}
+  if(FAIR){if(!c.shieldDown)c.hull=1;}
+  else if(c.shieldDown){const t0=c.shieldFellAt,t1=c===loser?.985:1.0,fl=c===loser?0:.35;const f=clamp((p-t0)/(t1-t0),0,1);const floor=1-(1-fl)*f;c.hull=clamp(c.hull,floor,floor+.07);}
   else c.hull=1;
-  if(c===loser&&p>.93){c.finT-=dt;if(c.finT<=0){c.finT=rand(1,2.5);const s=pick(c.subs.filter(s=>s.alive));if(s)damageSub(c,s,9);}}
-  if(c===loser&&p>=.985){c.hull=0;c.alive=false;radio('ЦЕНТР',`Крейсер ${c.name} знищено.`,'#ff5a4a',1);crafts.forEach(k=>{if(k.side===c.side)k.flee=true;});}
+  if(!FAIR&&c===loser&&p>.93){c.finT-=dt;if(c.finT<=0){c.finT=rand(1,2.5);const s=pick(c.subs.filter(s=>s.alive));if(s)damageSub(c,s,9);}}
+  if(FAIR&&c.hull<=0){loser=c;winner=en;c.hull=0;c.alive=false;window.FAIR_RESULT={winner:en.side,reason:'kill',p:+p.toFixed(2)};radio('ЦЕНТР',`Крейсер ${c.name} знищено.`,'#ff5a4a',1);crafts.forEach(k=>{if(k.side===c.side)k.flee=true;});return;}
+  if(FAIR&&p>=1&&!window.FAIR_RESULT){const sc=q=>q.hull*2+(q.shieldDown?0:q.shield)+q.subs.filter(z=>z.alive).length*.1;const w=sc(cruisers[0])>=sc(cruisers[1])?0:1;window.FAIR_RESULT={winner:w,reason:'timeout',p:1,s0:+sc(cruisers[0]).toFixed(2),s1:+sc(cruisers[1]).toFixed(2)};}
+  if(!FAIR&&c===loser&&p>.955&&!c.evac){c.evac=true;c.podsLeft=14;radio(c.cs,'Усім залишити корабель! Рятувальні капсули — старт!',c.col);}
+  if(c.podsLeft>0){c.podsT-=dt;if(c.podsT<=0){c.podsT=rand(.25,.6);c.podsLeft--;spawnPods(c,1);Snd.play('launch',.3,c.x);}}
+  if(!FAIR&&c===loser&&p>=.985){c.hull=0;c.alive=false;spawnPods(c,6);radio('ЦЕНТР',`Крейсер ${c.name} знищено.`,'#ff5a4a',1);crafts.forEach(k=>{if(k.side===c.side)k.flee=true;});}
   if(c.hull<.7){c.smokeT-=dt;if(c.smokeT<=0){c.smokeT=rand(.05,.3)*c.hull+.04;const q=wp(c,rand(-150,140),rand(-35,35));
     parts.push({x:q.x,y:q.y,vx:rand(-10,10),vy:rand(-25,-5),life:rand(.8,1.8),max:1.8,r:rand(4,10),col:'#555',smoke:true});
     if(Math.random()<.3){boom(q.x,q.y,5,1.5,'#ffa040');if(Math.random()<.3)Snd.play('explosion',.25,c.x);}}}
-  for(const s of c.subs)if(!s.alive&&Math.random()<.08){const q=subPos(c,s);parts.push({x:q.x+rand(-4,4),y:q.y,vx:rand(-6,6),vy:rand(-18,-6),life:rand(.6,1.4),max:1.4,r:rand(2,6),col:Math.random()<.3?'#ff7030':'#444',smoke:true});}
+  for(const s of c.subs)if(!s.alive&&Math.random()<.08*dt*60){const q=subPos(c,s);parts.push({x:q.x+rand(-4,4),y:q.y,vx:rand(-6,6),vy:rand(-18,-6),life:rand(.6,1.4),max:1.4,r:rand(2,6),col:Math.random()<.3?'#ff7030':'#444',smoke:true});}
   c.brainT-=dt;if(c.brainT<=0){c.brainT=.8;brain(c,en);}
-  c.launchCd-=dt;if(c.launchCd<=0&&c.queue.length){const q=c.queue.shift();if((c.hangar[q[0]]||0)>0){c.hangar[q[0]]--;spawnCraft(c,q[0],q[1],q[2],c.tactic.prio);}c.launchCd=q[2]&&c.queue.length&&c.queue[0][2]===q[2]?rand(.45,.8):rand(.6,1.2);}
+  c.launchCd-=dt;if(c.launchCd<=0&&c.queue.length){const q=c.queue.shift();if((c.hangar[q[0]]||0)>0){c.hangar[q[0]]--;spawnCraft(c,q[0],q[1],q[2],c.tactic.prio);}c.launchCd=q[2]&&c.queue.length&&c.queue[0][2]===q[2]?rand(.28,.5):rand(.5,1);}
   const theirs=crafts.filter(k=>k.side!==c.side);
+  const TT=CONFIG.turretTurn||{heavy:1.5,light:6};
   for(const s of c.subs){if(!s.alive)continue;s.cd-=dt;const q=subPos(c,s);
+    if(s.rec>0)s.rec=Math.max(0,s.rec-dt*5);if(s.flash>0)s.flash-=dt;
     if(s.kind==='heavy'){if(!c.canFire||!en.alive)continue;
-      let tx=en.x+rand(-.42,.42)*en.len,ty=en.y+rand(-.15,.15)*en.len;
-      if(en.shieldDown){const want=c.tactic.prio.find(k=>k!=='hull'&&alive(en,k).length);const ts=want?pick(alive(en,want)):null;if(ts&&Math.random()<.6){const tp=subPos(en,ts);tx=tp.x+rand(-14,14);ty=tp.y+rand(-10,10);}}
-      s.ang=Math.atan2(ty-q.y,tx-q.x);if(s.cd>0)continue;
-      bolt(q.x,q.y,s.ang,820,c.side,'turbo',10,.006,c.col,2.8,en);boom(q.x,q.y,4,1.6,c.col2);Snd.play('turbolaser',.55,q.x);s.cd=rand(1.5,2.6)/c.fireRate;}
-    else if(s.kind==='light'){let best=null,bd=330,second=null;for(const k of theirs){const dd=Math.hypot(k.x-q.x,k.y-q.y)*(k.type==='bait'?.5:k.type==='bomber'?.6:1);if(dd<bd){second=best;bd=dd;best=k;}}if(second&&Math.random()<.4)best=second;
-      if(best){const tt=Math.hypot(best.x-q.x,best.y-q.y)/620;const tx=best.x+Math.cos(best.a)*CFG[best.type].v*tt,ty=best.y+Math.sin(best.a)*CFG[best.type].v*tt;s.ang=Math.atan2(ty-q.y,tx-q.x);
-        if(s.cd<=0){bolt(q.x,q.y,s.ang+rand(-.14,.14),620,c.side,'light',.64,0,c.col2,.7,null);Snd.play('light',.15,q.x);s.cd=rand(.28,.45);}}
-      else if(s.cd<=0)s.cd=.2;}}
+      // точка прицілу обирається раз на постріл і супроводжується (а не смикається щокадру) — турель плавно довертається
+      s.rt=(s.rt||0)-dt;if(s.sd!==en.shieldDown){s.sd=en.shieldDown;s.rt=0;}
+      if(s.rt<=0){s.tgtSub=null;s.ta=rand(-.42,.42)*en.len;s.tl=rand(-.15,.15)*en.len;s.jx=rand(-14,14);s.jy=rand(-10,10);
+        if(en.shieldDown){const want=c.tactic.prio.find(k=>k!=='hull'&&alive(en,k).length);const ts=want?pick(alive(en,want)):null;if(ts&&Math.random()<.6)s.tgtSub=ts;}
+        s.rt=rand(1.2,2.2);}
+      let tx,ty;if(s.tgtSub&&s.tgtSub.alive){const tp=subPos(en,s.tgtSub);tx=tp.x+s.jx;ty=tp.y+s.jy;}else{const tq=fwd(en,s.ta,s.tl);tx=tq.x;ty=tq.y;}
+      const err=turnSub(c,s,Math.atan2(ty-q.y,tx-q.x),TT.heavy,dt);if(s.cd>0)continue;const HR=CONFIG.heavyRange||4200;if(Math.hypot(tx-q.x,ty-q.y)>HR){s.cd=.5;continue;}if(err>.1)continue;
+      bolt(q.x,q.y,s.ang,950,c.side,'turbo',10,.006,c.col,HR/950,en);boom(q.x,q.y,4,1.6,c.col2);Snd.play('turbolaser',.55,q.x);s.rec=1;s.flash=.14;s.rt=0;s.cd=rand(1.5,2.6)/c.fireRate;}
+    else if(s.kind==='light'){
+      // ціль шукається кілька разів на секунду (а не кожен кадр для кожної турелі), між скануваннями — супровід
+      s.st=(s.st||0)-dt;
+      if(s.st<=0||(s.tk&&s.tk.hp<=0)){s.st=rand(.12,.2);let best=null,bd=330,second=null;for(const k of theirs){const dd=Math.hypot(k.x-q.x,k.y-q.y)*(k.type==='bait'?.5:k.type==='bomber'?.6:1);if(dd<bd){second=best;bd=dd;best=k;}}if(second&&Math.random()<.4)best=second;s.tk=best;}
+      const best=s.tk;
+      if(best&&best.hp>0){const tt=Math.hypot(best.x-q.x,best.y-q.y)/620;const tx=best.x+Math.cos(best.a)*CFG[best.type].v*tt,ty=best.y+Math.sin(best.a)*CFG[best.type].v*tt;
+        const err=turnSub(c,s,Math.atan2(ty-q.y,tx-q.x),TT.light,dt);
+        if(s.cd<=0&&err<.3){bolt(q.x,q.y,s.ang+rand(-.14,.14),620,c.side,'light',.64,0,c.col2,.7,null);Snd.play('light',.15,q.x);s.rec=.6;s.flash=.09;s.cd=rand(.28,.45);}}
+      else{turnSub(c,s,fwdAngle(c),2,dt);if(s.cd<=0)s.cd=.2;}}}
 }
 
 /* ================= ШІ МЛА ================= */
+const roleIdx=cr=>{let i=0;for(const k of crafts){if(k===cr)return i;if(k.side===cr.side&&k.role===cr.role&&!k.flee&&k.state!=='retreat')i++;}return i;};
+const spreadY=(i,step)=>((i%2?1:-1)*Math.ceil(i/2))*step; // 0, +s, -s, +2s, -2s …
+function threatTo(cr,R){let best=null,bd=R;for(const k of crafts){if(k.side===cr.side||k.flee||k.target!==cr)continue;const d=Math.hypot(k.x-cr.x,k.y-cr.y);if(d<bd){bd=d;best=k;}}return best;}
+function snapTarget(cr,R,cone){let best=null,bd=R;for(const k of crafts){if(k.side===cr.side||k.flee)continue;const dx=k.x-cr.x,dy=k.y-cr.y,d=Math.hypot(dx,dy);if(d>=bd)continue;if(Math.abs(wrap(Math.atan2(dy,dx)-cr.a))>cone)continue;bd=d;best=k;}return best;}
 function nearEnemyCraft(cr,R,bombersFirst){const theirs=crafts.filter(k=>k.side!==cr.side&&k.hp>0&&!k.flee);let best=null,bd=1e9;
   if(bombersFirst){const me=cruisers[cr.side];for(const k of theirs){if(k.type!=='bomber')continue;if(Math.hypot(k.x-me.x,k.y-me.y)<800){const q=Math.hypot(k.x-cr.x,k.y-cr.y);if(q<bd){bd=q;best=k;}}}if(best)return best;}
   for(const k of theirs){const q=Math.hypot(k.x-cr.x,k.y-cr.y);if(q<bd&&q<R){bd=q;best=k;}}return best;}
 function bomberTarget(cr,en){for(const k of cr.prio){if(k==='hull')return {kind:'hull'};const s=k==='light'?weakestSub(en,false):nearestSub(en,k,cr.x,cr.y);if(s)return {kind:k,sub:s};}return {kind:'hull'};}
-function dodgeTurbo(cr,dt){cr.dodge-=dt;if(cr.dodge>0)return;
-  for(const b of bolts){if(b.kind!=='turbo'||b.side===cr.side)continue;const rx=cr.x-b.x,ry=cr.y-b.y,l=Math.hypot(b.vx,b.vy),nx=b.vx/l,ny=b.vy/l;const along=rx*nx+ry*ny;
-    if(along<0||along>l*.6)continue;const perp=rx*ny-ry*nx;if(Math.abs(perp)<48){cr.jink=(perp>0?1:-1)*(Math.random()<.5?-1:1)*3.5*(cr.type==='bomber'?.4:1);cr.jinkT=.35;cr.dodge=.6;return;}}}
 // щитоносець: стає на лінію вогню між ворожим крейсером і своїм корпусом, під конкретний болт, що летить
-function screenPoint(cr,me,en){const xs=me.x+me.dir*(me.len*.62),ys=me.y+(cr.slot%2?1:-1)*(40+Math.floor(cr.slot/2)*70);let best=null,bd=1e9;
-  for(const b of bolts){if(b.kind!=='turbo'||b.side===cr.side||b.claimed&&b.claimed!==cr)continue;const t=(xs-b.x)/b.vx;if(t<0||t>1.2)continue;const y=b.y+b.vy*t;if(Math.abs(y-me.y)>me.len*.3)continue;const d=Math.abs(y-cr.y)+Math.abs(xs-cr.x);if(d<bd){bd=d;best={x:xs,y,b};}}
+function screenPoint(cr,me,en){const i=roleIdx(cr),row=Math.floor(i/6);const q=fwd(me,me.len*.62+row*40,spreadY(i%6,52*CS)),xs=q.x,ys=q.y;if(me.tactic&&me.tactic.screenFixed)return {x:xs,y:ys};let best=null,bd=1e9;
+  const fa=fwdAngle(me),nx=-Math.sin(fa),ny=Math.cos(fa);const base=fwd(me,me.len*.62,0);
+  for(const b of bolts){if(b.kind!=='turbo'||b.side===cr.side||b.claimed&&b.claimed!==cr)continue;const vf=b.vx*Math.cos(fa)+b.vy*Math.sin(fa);if(Math.abs(vf)<1)continue;const t=((base.x-b.x)*Math.cos(fa)+(base.y-b.y)*Math.sin(fa))/vf;if(t<0||t>1.2)continue;const px=b.x+b.vx*t,py=b.y+b.vy*t;const lat=(px-base.x)*nx+(py-base.y)*ny;if(Math.abs(lat)>me.len*.3)continue;const d=Math.hypot(px-cr.x,py-cr.y);if(d<bd){bd=d;best={x:base.x+nx*lat,y:base.y+ny*lat,b};}}
   if(best){best.b.claimed=cr;return best;}return {x:xs,y:ys};}
+/* РУШІЙ РУХУ МЛА.  Три режими цілі: station — утримувати точку (носом до ворога або за заданим курсом),
+   travel — долетіти до точки з гальмуванням і стати, pass — бойовий захід: пряма атака на ціль, прохід крізь неї й відхід на точку далі за ціллю, потім новий захід.
+   Жодного переслідування по спіралі: якщо ціль поруч або позаду — борт не крутиться, а відводить і заходить заново. */
+function passGoal(cr,tx,ty,P){ // повертає {x,y,mode:'pass',onTarget:bool}
+  if(cr.pass){const d=Math.hypot(cr.pass.x-cr.x,cr.pass.y-cr.y);cr.pass.t+=dt_;if(d<34||cr.pass.t>3.5)cr.pass=null;else return {x:cr.pass.x,y:cr.pass.y,mode:'pass',onTarget:false};}
+  const dx=tx-cr.x,dy=ty-cr.y,d=Math.hypot(dx,dy)||1,cosA=(dx*Math.cos(cr.a)+dy*Math.sin(cr.a))/d;
+  if(d<60*CS||(cosA<.2&&d<170*CS)){ // пройшли ціль / вона збоку-позаду → відхід прямо вперед, потім новий захід
+    const ex=clamp(cr.x+Math.cos(cr.a)*260*CS,40,WW-40),ey=clamp(cr.y+Math.sin(cr.a)*260*CS,40,WH-40);cr.pass={x:ex,y:ey,t:0};return {x:ex,y:ey,mode:'pass',onTarget:false};}
+  return {x:tx,y:ty,mode:'pass',onTarget:true};
+}
 function updCraft(cr,i,dt){
   const me=cruisers[cr.side],en=cruisers[1-cr.side],P=CFG[cr.type];
-  cr.age+=dt;cr.cd-=dt;cr.retT-=dt;let tx,ty,fireAt=null,dd;
+  cr.age+=dt;cr.cd-=dt;cr.retT-=dt;let g=null,fireAt=null;
   if(cr.type==='shieldship')cr.bub=Math.min(1,cr.bub+dt*.12);
-  if(cr.flee){tx=cr.side?WW+500:-500;ty=cr.y;if(cr.x<-400||cr.x>WW+400){crafts.splice(i,1);return;}}
-  else if(cr.group&&cr.group<90&&cr.age<14&&me.queue.some(q=>q[2]===cr.group)){const a=cr.age*.8+cr.phase;tx=me.x+me.dir*260+Math.cos(a)*90;ty=me.y+Math.sin(a)*120;}
+  const hangarPt=()=>{const q=fwd(me,-60,cr.phase>3?60:-60);return {x:q.x,y:q.y,mode:'travel'};};
+  // відступ пошкоджених
+  if(!cr.flee&&cr.state!=='retreat'&&cr.type!=='bomber'&&cr.age>3&&cr.hp<P.hp*.34&&me.alive){cr.state='retreat';cr.target=null;cr.pass=null;if(Math.random()<.15)radio(SQ(me),pick(['Пошкоджений, виходжу з бою. Повертаюсь на ремонт.','Двигун горить, іду додому!']),me.col2);}
+  const recalled=me.recallUntil&&load.disp<me.recallUntil&&!['screen','convoy','cap','hunt'].includes(cr.role)&&cr.state!=='retreat'&&cr.state!=='return'&&!cr.flee;
+  if(cr.flee){g={x:cr.side?WW+500:-500,y:cr.y,mode:'travel',nostop:true};if(cr.x<-400||cr.x>WW+400){crafts.splice(i,1);return;}}
+  else if(cr.state==='retreat'){g=hangarPt();if(Math.hypot(g.x-cr.x,g.y-cr.y)<44||!me.alive){crafts.splice(i,1);if(me.alive){me.hangar[cr.type]=(me.hangar[cr.type]||0)+1;me.repaired=(me.repaired||0)+1;}return;}}
+  else if(recalled&&!(cr.type==='bomber'&&cr.state==='attack'&&inShield(en,cr.x,cr.y))){const k=roleIdx(cr),row=Math.floor(k/5),q=fwd(me,me.len*.5+90+row*44,spreadY(k%5,56*CS));g={x:q.x,y:q.y,mode:'station'};
+    const t=cr.type!=='bomber'?nearEnemyCraft(cr,260,true):null;if(t)fireAt={x:t.x,y:t.y,r:P.range};if(cr.type==='bomber')cr.state='flank';cr.pass=null;}
+  else if(cr.group&&cr.group<90&&cr.age<14&&me.queue.some(q=>q[2]===cr.group)){const k=cr.fslot||0,q=fwd(me,me.len*.7+60,spreadY(k,46*CS));g={x:q.x,y:q.y,mode:'station',face:fwdAngle(me)};} // збір групи
   else if(cr.type!=='bomber'){
     const R=cr.role==='cap'?650:cr.role==='sweep'?(en.shieldDown?150:900):cr.role==='escort'?280:cr.role==='guard'?340:cr.role==='convoy'?380:cr.role==='hunt'?1400:cr.role==='screen'?120:70;
-    if(cr.retT<=0||(cr.target&&(cr.target.hp<=0||cr.target.flee))){cr.retT=rand(.4,.9);cr.target=nearEnemyCraft(cr,R,['cap','escort','guard','convoy'].includes(cr.role));
-      if(cr.role==='convoy'&&cr.target&&Math.hypot(cr.target.x-me.x,cr.target.y-me.y)>520)cr.target=null;}
+    if(cr.retT<=0||(cr.target&&(cr.target.hp<=0||cr.target.flee||!crafts.includes(cr.target)))){cr.retT=rand(.5,1);let nt=nearEnemyCraft(cr,R,['cap','escort','guard','convoy'].includes(cr.role));
+      if(cr.role!=='screen'&&cr.role!=='bshield'){const th=threatTo(cr,300);if(th&&(!nt||Math.hypot(nt.x-cr.x,nt.y-cr.y)>Math.hypot(th.x-cr.x,th.y-cr.y)))nt=th;} // самооборона: хто сів на хвіст — того й б'ємо, незалежно від пріоритету
+      if(cr.role==='convoy'&&nt&&Math.hypot(nt.x-me.x,nt.y-me.y)>520)cr.target=null;else{if(nt!==cr.target)cr.pass=null;cr.target=nt;}}
     const t=cr.target;
-    if(t){tx=t.x;ty=t.y;fireAt={x:t.x,y:t.y,r:P.range};}
-    else if(cr.role==='screen'){const sp=screenPoint(cr,me,en);tx=sp.x;ty=sp.y;}
-    else if(cr.role==='convoy'){const a=cr.age*.7+cr.phase;tx=me.x+Math.cos(a)*(me.len*.6);ty=me.y+Math.sin(a)*(me.len*.42);}
-    else if(cr.role==='escort'||cr.role==='guard'){const b=crafts.find(k=>k.side===cr.side&&(cr.role==='guard'?k.type==='gunship':k.type==='bomber')&&k.group===cr.group&&k.state!=='return');
-      if(b){tx=b.x-Math.cos(b.a)*45+Math.cos(cr.phase+cr.age*.6)*60;ty=b.y+Math.sin(cr.phase+cr.age*.6)*60;}else cr.role='sweep';}
-    else if(cr.role==='flank'&&cr.state==='flank'){tx=cr.wp.x;ty=cr.wp.y;if(Math.hypot(tx-cr.x,ty-cr.y)<70||!en.alive)cr.state='go';}
-    else if(cr.role==='cap'&&!en.shieldDown){}
-    else if(en.alive){
-      if(!cr.sub||!cr.sub.alive){cr.sub=cr.role==='bait'?(nearestSub(en,'light',en.x+en.dir*en.len*.8,en.y)||weakestSub(en,false)):(weakestSub(en,false)||(en.shieldDown?null:nearestSub(en,'gen',cr.x,cr.y)));}
-      if(cr.sub){const sp=subPos(en,cr.sub);
-        if(!cr.atk||cr.atk.s==='run'){tx=sp.x;ty=sp.y;if(cr.role==='bait'){const dx=sp.x-cr.x,dy=sp.y-cr.y,dl=Math.hypot(dx,dy)||1,w=Math.sin(cr.age*3.2+cr.phase)*Math.min(90,dl*.5);tx+=-dy/dl*w;ty+=dx/dl*w;}
-          if(en.shieldDown||inShield(en,cr.x,cr.y))fireAt={x:sp.x,y:sp.y,r:270};
-          if(Math.hypot(sp.x-cr.x,sp.y-cr.y)<(cr.role==='bait'?95:55)){const bx=2*en.x-sp.x+rand(-60,60)+(cr.role==='bait'?en.dir*rand(60,160):0),by=clamp(2*en.y-sp.y+rand(-50,50),30,WH-30);cr.atk={s:'break',x:bx,y:by};}}
-        else{tx=cr.atk.x;ty=cr.atk.y;if(Math.hypot(tx-cr.x,ty-cr.y)<60)cr.atk={s:'run'};}}
-      else{tx=en.x+rand(-.3,.3)*en.len;ty=en.y+rand(-.1,.1)*en.len;fireAt={x:en.x,y:en.y,r:280};}}
-    if(tx===undefined){const a=cr.age*.45+cr.phase;tx=me.x+me.dir*140+Math.cos(a)*420;ty=me.y+Math.sin(a)*260;}
-  }else{
-    if(cr.state==='flank'){tx=cr.wp.x;ty=cr.wp.y;if(Math.hypot(tx-cr.x,ty-cr.y)<60||!en.alive){cr.state='attack';cr.tgt=bomberTarget(cr,en);}}
+    if(t){const tt=Math.hypot(t.x-cr.x,t.y-cr.y)/600,lx=t.x+Math.cos(t.a)*CFG[t.type].v*tt*.6,ly=t.y+Math.sin(t.a)*CFG[t.type].v*tt*.6;g=passGoal(cr,lx,ly,P);if(g.onTarget)fireAt={x:lx,y:ly,r:P.range};}
+    else if(cr.role==='screen'){const sp=screenPoint(cr,me,en);g={x:sp.x,y:sp.y,mode:'station'};}
+    else if(cr.role==='convoy'){const k=roleIdx(cr),n=Math.max(1,crafts.filter(q=>q.side===cr.side&&q.role==='convoy'&&!q.flee).length),a=k/n*6.283+1.1;g={x:me.x+Math.cos(a)*(me.len*.62),y:me.y+Math.sin(a)*(me.len*.45),mode:'station'};}
+    else if(cr.role==='cap'&&!en.shieldDown){const k=roleIdx(cr),row=Math.floor(k/7),q=fwd(me,me.len*.8+row*60,spreadY(k%7,62*CS));g={x:q.x,y:q.y,mode:'station'};}
+    else if(cr.role==='escort'||cr.role==='guard'){const b=crafts.find(q=>q.side===cr.side&&(cr.role==='guard'?q.type==='gunship':q.type==='bomber')&&q.group===cr.group&&q.state!=='return');
+      if(b){const k=roleIdx(cr),row=Math.ceil((k+1)/2),lat=spreadY(k+1,30*CS);g={x:b.x-Math.cos(b.a)*row*22*CS-Math.sin(b.a)*lat,y:b.y-Math.sin(b.a)*row*22*CS+Math.cos(b.a)*lat,mode:'travel',face:b.a};}else cr.role='sweep';}
+    else if(cr.role==='bshield'){const grp=crafts.filter(q=>q.side===cr.side&&(q.type==='bomber'||q.type==='gunship')&&q.group===cr.group&&q.state!=='return');
+      if(grp.length){const cx=grp.reduce((a,q)=>a+q.x,0)/grp.length,cy=grp.reduce((a,q)=>a+q.y,0)/grp.length,ang=Math.atan2(en.y-cy,en.x-cx),lat=((cr.fslot||0)%2?1:-1)*(16+Math.floor((cr.fslot||0)/2)*28)*CS;
+        g={x:cx+Math.cos(ang)*52*CS-Math.sin(ang)*lat,y:cy+Math.sin(ang)*52*CS+Math.cos(ang)*lat,mode:'travel',face:ang};}
+      else{cr.role='screen';}}
+    else if(cr.role==='flank'&&cr.state==='flank'){g={x:cr.wp.x,y:cr.wp.y,mode:'travel',nostop:true};if(Math.hypot(g.x-cr.x,g.y-cr.y)<70||!en.alive)cr.state='go';}
+    else if(en.alive&&cr.role==='sweep'&&!en.shieldDown&&alive(en,'light').length>2){const k=roleIdx(cr),row=Math.floor(k/6),q=fwd(en,en.len*.95+140+row*50,spreadY(k%6,58*CS));g={x:q.x,y:q.y,mode:'station'};}
+    else if(en.alive){ // штурм турелей: прямі заходи
+      if(!cr.sub||!cr.sub.alive){cr.sub=cr.role==='bait'?(nearestSub(en,'light',fwd(en,en.len*.8,0).x,fwd(en,en.len*.8,0).y)||weakestSub(en,false)):(weakestSub(en,false)||(en.shieldDown?null:nearestSub(en,'gen',cr.x,cr.y)));cr.pass=null;}
+      if(cr.sub){const sp=subPos(en,cr.sub);g=passGoal(cr,sp.x,sp.y,P);if(g.onTarget&&(en.shieldDown||inShield(en,cr.x,cr.y)))fireAt={x:sp.x,y:sp.y,r:270};}
+      else{g=passGoal(cr,en.x,en.y,P);if(g.onTarget)fireAt={x:en.x,y:en.y,r:280};}}
+    if(!g){const k=roleIdx(cr),q=fwd(me,me.len*.8,spreadY(k,62*CS));g={x:q.x,y:q.y,mode:'station'};}
+  }else{ // БОМБЕР
+    if(cr.state==='flank'){g={x:cr.wp.x,y:cr.wp.y,mode:'travel',nostop:true};if(Math.hypot(g.x-cr.x,g.y-cr.y)<60||!en.alive){cr.state='attack';cr.tgt=bomberTarget(cr,en);cr.pass=null;}}
     else if(cr.state==='attack'&&en.alive){
-      if(!cr.tgt||(cr.tgt.sub&&!cr.tgt.sub.alive))cr.tgt=bomberTarget(cr,en);
-      const tp=cr.tgt.sub?subPos(en,cr.tgt.sub):{x:en.x+cr.off,y:en.y+cr.offy};tx=tp.x;ty=tp.y;
-      if(cr.cd<=0&&(en.shieldDown||inShield(en,cr.x,cr.y))&&Math.hypot(tp.x-cr.x,tp.y-cr.y)<120){
-        const a=Math.atan2(tp.y-cr.y,tp.x-cr.x);
-        bolts.push({x:cr.x,y:cr.y,vx:Math.cos(a)*250,vy:Math.sin(a)*250,side:cr.side,kind:'torpedo',col:'#ffe08a',life:3,inside:true,w:3,len:10,target:en,tsub:cr.tgt.sub||null});
-        Snd.play('torpedo',.6,cr.x);cr.ammo--;cr.cd=P.cd;if(cr.ammo<=0)cr.state='return';}}
-    else{cr.state='return';tx=me.x-me.dir*50;ty=me.y+(cr.phase>3?55:-55);if(Math.hypot(tx-cr.x,ty-cr.y)<34){crafts.splice(i,1);me.hangar.bomber=(me.hangar.bomber||0)+1;return;}}
+      if(!cr.tgt||(cr.tgt.sub&&!cr.tgt.sub.alive)){cr.tgt=bomberTarget(cr,en);cr.pass=null;}
+      const tp=cr.tgt.sub?subPos(en,cr.tgt.sub):{x:en.x+cr.off,y:en.y+cr.offy};g=passGoal(cr,tp.x,tp.y,P);
+      const dT=Math.hypot(tp.x-cr.x,tp.y-cr.y),al=Math.abs(wrap(Math.atan2(tp.y-cr.y,tp.x-cr.x)-cr.a));
+      if(g.onTarget&&cr.cd<=0&&(en.shieldDown||inShield(en,cr.x,cr.y))&&dT<150*CS&&al<.35){
+        const a=Math.atan2(tp.y-cr.y,tp.x-cr.x);bolts.push({x:cr.x,y:cr.y,vx:Math.cos(a)*250,vy:Math.sin(a)*250,side:cr.side,kind:'torpedo',col:'#ffe08a',life:3,inside:true,w:3,len:10,target:en,tsub:cr.tgt.sub||null});
+        Snd.play('torpedo',.6,cr.x);cr.ammo--;cr.cd=P.cd;if(cr.ammo<=0){cr.state='return';cr.pass=null;}}}
+    else{cr.state='return';g=hangarPt();if(Math.hypot(g.x-cr.x,g.y-cr.y)<34){crafts.splice(i,1);me.hangar.bomber=(me.hangar.bomber||0)+1;return;}}
   }
-  if(cr.role!=='screen')dodgeTurbo(cr,dt);
-  cr.jinkT-=dt;if(cr.jinkT<=0){cr.jinkT=rand(.3,.9);cr.jink=rand(-.5,.5)*(cr.type==='bomber'?.5:cr.type==='flanker'?3.2:cr.type==='gunship'?.9:cr.role==='screen'?.3:2.4);}
-  const want=Math.atan2(ty-cr.y,tx-cr.x),d=wrap(want-cr.a);dd=Math.hypot(tx-cr.x,ty-cr.y);
-  if(dd>40)cr.a+=clamp(d,-P.turn*dt,P.turn*dt);cr.a+=cr.jink*dt*(dd>120?1:.45);
-  const spd=cr.role==='screen'&&dd<60?P.v*dd/60:P.v;
-  cr.x+=Math.cos(cr.a)*spd*dt;cr.y+=Math.sin(cr.a)*spd*dt;
-  if(!cr.flee){if(cr.y<20){cr.y=20;cr.a=wrap(-cr.a);}if(cr.y>WH-20){cr.y=WH-20;cr.a=wrap(-cr.a);}if(cr.x<10){cr.x=10;cr.a=wrap(Math.PI-cr.a);}if(cr.x>WW-10){cr.x=WW-10;cr.a=wrap(Math.PI-cr.a);}}
+  // СТРІЙ на підльоті: група йде клином за ведучим
+  cr.inForm=false;
+  const holdF=me.tactic&&me.tactic.holdFormation;if(holdF&&cr.group&&(cr.fslot||0)>0&&cr.target&&Math.hypot(en.x-cr.x,en.y-cr.y)>en.len*1.15){const lead=crafts.find(q=>q.side===cr.side&&q.group===cr.group&&q.fslot===0&&!q.flee);if(lead&&!lead.target&&!lead.pass){cr.target=null;cr.pass=null;fireAt=null;}}
+  if(cr.group&&cr.group<90&&!cr.target&&!cr.flee&&cr.state!=='retreat'&&cr.state!=='return'&&!recalled&&cr.role!=='bshield'&&(cr.fslot||0)>0&&Math.hypot(en.x-cr.x,en.y-cr.y)>en.len*1.15){
+    const lead=crafts.find(q=>q.side===cr.side&&q.group===cr.group&&q.fslot===0&&!q.flee&&q.state!=='retreat');
+    if(lead&&lead!==cr&&!lead.target&&!lead.pass){const i2=cr.fslot,row=Math.ceil(i2/2),side=i2%2?1:-1,back=row*26*CS,lat=side*row*20*CS;
+      g={x:lead.x-Math.cos(lead.a)*back-Math.sin(lead.a)*lat,y:lead.y-Math.sin(lead.a)*back+Math.cos(lead.a)*lat,mode:'travel',face:lead.a,form:true};cr.inForm=true;}}
+  // РУХ
+  const dx=g.x-cr.x,dy=g.y-cr.y,dd=Math.hypot(dx,dy);cr.stationed=false;
+  if((g.mode==='station'||(g.mode==='travel'&&!g.nostop))&&dd<26){ // у точці: стоїмо, носом до ворога (або за курсом ведучого)
+    const fa=g.face!=null?g.face:Math.atan2(en.y-cr.y,en.x-cr.x);cr.a+=clamp(wrap(fa-cr.a)*3,-P.turn,P.turn)*dt;cr.x+=dx*dt*3;cr.y+=dy*dt*3;cr.stationed=true;}
+  else{const want=Math.atan2(dy,dx),d=wrap(want-cr.a);cr.a+=clamp(d*3.2,-P.turn,P.turn)*dt;
+    let spd=P.v;if(g.mode==='station'||(g.mode==='travel'&&!g.nostop))spd*=clamp(dd/120,.3,1);if(g.form)spd=P.v*clamp(dd/40,.55,1.08);if(Math.abs(d)>1.6&&g.mode==='pass')spd*=.6; // крутий розворот — скидаємо швидкість, щоб не було широких кіл
+    if(cr.group&&cr.fslot===0&&!cr.target&&crafts.some(q=>q.group===cr.group&&q.side===cr.side&&q.inForm))spd*=.85;
+    cr.x+=Math.cos(cr.a)*spd*dt;cr.y+=Math.sin(cr.a)*spd*dt;}
+  if(!cr.flee){if(cr.y<20){cr.y=20;cr.a=wrap(-cr.a);cr.pass=null;}if(cr.y>WH-20){cr.y=WH-20;cr.a=wrap(-cr.a);cr.pass=null;}if(cr.x<10){cr.x=10;cr.a=wrap(Math.PI-cr.a);cr.pass=null;}if(cr.x>WW-10){cr.x=WW-10;cr.a=wrap(Math.PI-cr.a);cr.pass=null;}}
+  // ВОГОНЬ
+  cr.fx=fireAt?fireAt.x:null;cr.fy=fireAt?fireAt.y:null;
+  if(cr.type!=='bomber'&&cr.cd<=0&&!cr.flee){ // попутний вогонь: якщо основна ціль не на прицілі — бити будь-що вороже прямо по курсу
+    const aligned=fireAt&&Math.hypot(fireAt.x-cr.x,fireAt.y-cr.y)<fireAt.r&&Math.abs(wrap(Math.atan2(fireAt.y-cr.y,fireAt.x-cr.x)-cr.a))<.3;
+    if(!aligned){const sn=snapTarget(cr,P.range*.85,.28);if(sn)fireAt={x:sn.x,y:sn.y,r:P.range};}}
+  if(cr.type==='bomber'&&!cr.flee){cr.gcd=(cr.gcd||rand(0,.6))-dt;if(cr.gcd<=0){const tg=nearEnemyCraft(cr,210*CS,false);if(tg&&tg.type!=='bomber'){const a=Math.atan2(tg.y-cr.y,tg.x-cr.x);const b=bolt(cr.x,cr.y,a+rand(-.08,.08),600,cr.side,'blaster',.35,0,me.col2,.45,null);b.w=1.1;b.len=9;Snd.play('blaster',.12,cr.x);cr.gcd=.55;}else cr.gcd=.25;}} // кормовий стрілець бомбера
   if(cr.type!=='bomber'&&cr.cd<=0&&!cr.flee&&fireAt){const fa=Math.atan2(fireAt.y-cr.y,fireAt.x-cr.x),fd=Math.hypot(fireAt.x-cr.x,fireAt.y-cr.y);
     if(fd<fireAt.r&&Math.abs(wrap(fa-cr.a))<.3){const heavy=cr.type==='gunship'||cr.type==='ace';const b=bolt(cr.x,cr.y,fa+rand(-.03,.03),heavy?540:620,cr.side,'blaster',P.dmg,.0008,heavy?'#ffd36a':me.col2,.7,en);
       if(P.sm){b.sm=P.sm;b.w=cr.type==='gunship'?2.6:2;b.len=cr.type==='gunship'?20:16;}Snd.play(cr.type==='gunship'?'turbolaser':'blaster',cr.type==='gunship'?.25:.2,cr.x);cr.cd=P.cd;}}
@@ -624,8 +783,8 @@ function separate(dt){
     if(d<CD){a.hp-=2.5;b.hp-=2.5;boom((a.x+b.x)/2,(a.y+b.y)/2,6,1.2,'#fff');Snd.play('explosion',.2,a.x);const px=dx/d*8,py=dy/d*8;a.x-=px;a.y-=py;b.x+=px;b.y+=py;
       if(a.hp<=0){killCraft(a,i);i--;break;}if(b.hp<=0){killCraft(b,j);j--;}continue;}
     if(d<SD){const f=(SD-d)/SD*90*dt,px=dx/d*f,py=dy/d*f;a.x-=px;a.y-=py;b.x+=px;b.y+=py;const ang=Math.atan2(dy,dx);a.a+=clamp(wrap(ang+Math.PI-a.a),-1,1)*dt*1.5*(SD-d)/SD;b.a+=clamp(wrap(ang-b.a),-1,1)*dt*1.5*(SD-d)/SD;}}}}
-function killCraft(k,idx){boom(k.x,k.y,k.type==='bomber'?14:9,k.type==='bomber'?3:2,Math.random()<.5?'#ffb060':cruisers[k.side].col);Snd.play('explosion',k.type==='bomber'?.5:.3,k.x);crafts.splice(idx,1);
-  if(Math.random()<.18)radio(SQ(cruisers[k.side]),pick(['Втратили борт! Катапульта не спрацювала…','Ми його втратили. Продовжуємо.','Збитий! Повторюю, збитий!']),cruisers[k.side].col2);}
+function killCraft(k,idx){boom(k.x,k.y,k.type==='bomber'?14:9,k.type==='bomber'?3:2,Math.random()<.5?'#ffb060':cruisers[k.side].col);ring(k.x,k.y,4,40*CS,'#ffd080',.3,1.5);for(let q=0;q<4;q++)debris.push({x:k.x,y:k.y,vx:rand(-90,90)+Math.cos(k.a)*40,vy:rand(-90,90)+Math.sin(k.a)*40,life:rand(.6,1.4),max:1.4,len:rand(3,7),col:'#9aa3b4',spin:true});Snd.play('explosion',k.type==='bomber'?.5:.3,k.x);crafts.splice(idx,1);
+  if(Math.random()<.1)radio(SQ(cruisers[k.side]),pick(['Втратили борт! Катапульта не спрацювала…','Ми його втратили. Продовжуємо.','Збитий! Повторюю, збитий!']),cruisers[k.side].col2);}
 
 /* ================= СНАРЯДИ ================= */
 const SUBDMG={blaster:{light:.16,heavy:.07,gen:.035},turbo:{light:.5,heavy:.18,gen:.1},torpedo:{light:.7,heavy:.4,gen:.24}};
@@ -640,11 +799,11 @@ function updBolts(dt){
     if(b.life<=0||b.x<-80||b.x>WW+80||b.y<-80||b.y>WH+80){bolts.splice(i,1);continue;}
     const en=cruisers[1-b.side];let hit=false;
     // міні-щити щитоносців перехоплюють головний калібр
-    if(b.kind==='turbo'){for(const k of crafts){if(k.side===b.side||k.type!=='shieldship'||k.bub<=.15)continue;if(Math.hypot(k.x-b.x,k.y-b.y)<CFG.shieldship.bubble){k.bub-=.4;boom(b.x,b.y,8,2,cruisers[k.side].col);Snd.play('shieldHit',.6,b.x);parts.push({x:k.x,y:k.y,vx:0,vy:0,life:.25,max:.25,r:CFG.shieldship.bubble*1.1,col:rgba(cruisers[k.side].col,.5),flash:true});hit=true;break;}}}
+    if(b.kind==='turbo'||b.kind==='light'){for(const k of crafts){if(k.side===b.side||k.type!=='shieldship'||k.bub<=.15)continue;if(Math.hypot(k.x-b.x,k.y-b.y)<CFG.shieldship.bubble){k.bub-=b.kind==='turbo'?.4:.06;if(b.kind==='light'){ripples.push({c:null,x:b.x,y:b.y,t:0,s:.2});hit=true;break;}boom(b.x,b.y,8,2,cruisers[k.side].col);Snd.play('shieldHit',.6,b.x);parts.push({x:k.x,y:k.y,vx:0,vy:0,life:.25,max:.25,r:CFG.shieldship.bubble*1.1,col:rgba(cruisers[k.side].col,.5),flash:true});hit=true;break;}}}
     if(!hit&&en.alive&&b.kind!=='light'){
       if(!b.inside&&inShield(en,b.x,b.y)){en.shield-=b.cdmg;ripples.push({c:en,x:b.x,y:b.y,t:0,s:b.kind==='turbo'?1:.4});
         if(b.kind==='turbo'){boom(b.x,b.y,5,1.5,en.col2);Snd.play('shieldHit',.5,b.x);}hit=true;}
-      else if(inHull(en,b.x,b.y,1.12)){let s=null,sd=20;for(const q of en.subs){if(!q.alive)continue;const p=subPos(en,q),d=Math.hypot(p.x-b.x,p.y-b.y);if(d<sd){sd=d;s=q;}}
+      else if(inHull(en,b.x,b.y,1.12)){let s=null,sd=1e9;for(const q of en.subs){if(!q.alive)continue;const p=subPos(en,q),d=Math.hypot(p.x-b.x,p.y-b.y);if(d<Math.max(20,(CONFIG.turretSize[q.kind]||12)*K*.4)&&d<sd){sd=d;s=q;}}
         if(s){damageSub(en,s,SUBDMG[b.kind][s.kind]*(b.sm||1)*DM);hit=true;}
         if(b.kind==='turbo'&&inHull(en,b.x,b.y)){en.hull-=b.cdmg;boom(b.x,b.y,12,2.8,'#ffb060');Snd.play('explosion',.35,b.x);shake=Math.max(shake,2);hit=true;}}
     }
@@ -665,65 +824,119 @@ function updLoad(dt){
     if(!load.scaled)DM=1;else DM=clamp(Math.sqrt(100/load.est),.6,2.2);}
   else if(!load.scaled){load.scaled=true;applyTempo();}
   // прогрес бою. Якщо реальний прогрес завис довше 45 с — бій іде далі по внутрішньому таймеру; повторні бої — лише по таймеру
+  if(DBG.forceP!=null){battle.p=DBG.forceP;load.disp=DBG.forceP;DBG.forceP=null;}
   if(run===0){if(load.progress>battle.lastReal+1e-4){battle.lastReal=load.progress;battle.virt=load.progress;battle.stallT=0;}else{battle.stallT+=dt;if(battle.stallT>45)battle.virt=Math.min(1,battle.virt+dt/Math.max(load.est,120));}
     battle.p=Math.max(load.progress,battle.virt);}
   else battle.p=Math.min(1,(T-runT)/battle.D);
   load.disp+=(battle.p-load.disp)*Math.min(1,dt*1.5);battle.dispReal+=(load.progress-battle.dispReal)*Math.min(1,dt*1.5);runScript(load.disp);
   // перезапуск: через 10 с після перемоги — стрибок у гіперпростір і новий бій з іншими тактиками
-  if(resultShown&&warp<0&&T-resultT>10){warp=0;}
-  if(warp>=0){const w0=warp;warp+=dt;if(w0<1.3&&warp>=1.3)restartBattle();if(warp>2.8)warp=-1;}
+  if(resultShown&&warp<0&&T-resultT>10)startWarp();
+  if(warp>=0){const w0=warp;warp+=dt;if(w0<1.6&&warp>=1.6)restartBattle();if(warp>3.2)warp=-1;}
   if(loser&&!loser.alive&&loser.dying>4&&!resultShown){resultShown=true;resultT=T;const r=document.getElementById('result');
     document.getElementById('rt').textContent='Перемога: '+winner.name;
     document.getElementById('rs').textContent=`Тактика «${winner.tactic.name}» · корпус ${Math.round(winner.hull*100)}% · уламки «${loser.name}» дрейфують у порожнечі`;
     r.style.color=winner.col;r.style.opacity=1;}
 }
 let hudT=0;
+const setH=(id,h)=>{const e=document.getElementById(id);if(e._h!==h){e._h=h;e.innerHTML=h;}}; // перемальовуємо HUD лише коли змінився вміст
 function turHTML(c){const it=s=>s.alive?`<i><em>${s.n}</em><b><u style="width:${Math.round(s.hp*100)}%"></u></b></i>`:`<i class="x"><em>${s.n}</em><b></b></i>`;
   return c.subs.filter(s=>s.kind==='heavy').map(it).join('')+'<span class="sep">|</span>'+c.subs.filter(s=>s.kind==='light').map(it).join('')+'<span class="sep">|</span>'+c.subs.filter(s=>s.kind==='gen').map(it).join('');}
 function rosHTML(c){return Object.keys(LABEL).filter(k=>(c.hangar[k]||0)>0||crafts.some(q=>q.side===c.side&&q.type===k)).map(k=>`<span>${LABEL[k]} <b>${crafts.filter(q=>q.side===c.side&&q.type===k).length}</b>/${c.hangar[k]||0}</span>`).join('');}
 function updHUD(dt){hudT-=dt;if(hudT>0)return;hudT=.15;
   cruisers.forEach((c,i)=>{const h=Math.round(c.hull*100),s=Math.round(c.shield*100);
     document.getElementById('h'+i).textContent=h+'%';document.getElementById('hb'+i).style.width=h+'%';
-    document.getElementById('s'+i).textContent=c.shieldDown?'ВТРАЧЕНО':s+'%';document.getElementById('sb'+i).style.width=s+'%';
-    document.getElementById('ros'+i).innerHTML=rosHTML(c)+(c.fitErr?'<span style="color:#ffe81f">'+c.fitErr+'</span>':'');document.getElementById('tur'+i).innerHTML=turHTML(c);});
+    document.getElementById('s'+i).textContent=c.shieldDown?'ВТРАЧЕНО':c.shieldUp<1?'ПІДНЯТТЯ':s+'%';document.getElementById('sb'+i).style.width=s+'%';
+    setH('ros'+i,rosHTML(c)+(c.fitErr?'<span style="color:#ffe81f">'+c.fitErr+'</span>':''));setH('tur'+i,turHTML(c));});
   const p=Math.round(battle.dispReal*100);document.getElementById('pct').textContent=p+'%';document.getElementById('pb').style.width=p+'%';
-  document.getElementById('st').textContent=load.status+(load.file?' — '+load.file:'')+' · v11';
+  document.getElementById('st').textContent=load.status+(load.file?' — '+load.file:'')+' · v14';
   if(Snd.mus)Snd.mus.tick();
 }
 
 /* ================= МАЛЮВАННЯ ================= */
+function polyLen(poly){let l=0;for(let i=0;i<poly.length;i++){const a=poly[i],b=poly[(i+1)%poly.length];l+=Math.hypot(b[0]-a[0],b[1]-a[1]);}return l;}
+/* ===== ТУРЕЛІ: кеш спрайтів. База (PNG або вектор) малюється один раз в офскрін-канвас у 2× роздільності ===== */
+const TCACHE=new Map();let IMGUID=0;
+function vectorTurret(g,kind,dead,col,r){
+  g.lineJoin='round';const cir=()=>{g.beginPath();g.arc(0,0,r,0,6.29);};
+  const base=g.createRadialGradient(-r*.3,-r*.3,r*.1,0,0,r);
+  if(dead){base.addColorStop(0,'#2e211b');base.addColorStop(1,'#120c0a');g.fillStyle=base;g.strokeStyle='#5a2a1e';g.lineWidth=r*.08;cir();g.fill();g.stroke();
+    g.strokeStyle='rgba(0,0,0,.65)';g.lineWidth=r*.06;g.beginPath();g.moveTo(-r*.6,-r*.25);g.lineTo(-r*.1,r*.1);g.lineTo(r*.35,-r*.55);g.moveTo(-r*.1,r*.1);g.lineTo(r*.2,r*.7);g.stroke();return;}
+  const H=kind==='heavy',len=H?2:1.9,bw=H?.3:.22,by=H?.38:.3;
+  base.addColorStop(0,H?'#4c596f':'#46536a');base.addColorStop(1,'#171d27');g.fillStyle=base;g.strokeStyle='#080c12';g.lineWidth=r*.08;cir();g.fill();g.stroke();
+  g.strokeStyle=rgba(col,.75);g.lineWidth=r*.07;g.beginPath();g.arc(0,0,r*.84,0,6.29);g.stroke();            // кільце кольору борту
+  for(const sy of [-1,1]){const y=sy*by*r-bw*r/2;const bg=g.createLinearGradient(0,y,0,y+bw*r);bg.addColorStop(0,'#aab6c8');bg.addColorStop(.5,'#5d6b80');bg.addColorStop(1,'#2b3442');
+    g.fillStyle=bg;g.strokeStyle='#080c12';g.lineWidth=r*.04;g.fillRect(-r*.2,y,r*len+r*.2,bw*r);g.strokeRect(-r*.2,y,r*len+r*.2,bw*r);
+    g.fillStyle='#1b222d';g.fillRect(r*(len-.3),y-r*.04,r*.3,bw*r+r*.08);}                                     // дульний зріз
+  const dome=g.createRadialGradient(-r*.15,-r*.15,0,0,0,r*.5);dome.addColorStop(0,'#c3cfdf');dome.addColorStop(1,'#4a566a');g.fillStyle=dome;g.strokeStyle='#080c12';g.beginPath();g.arc(0,0,r*.46,0,6.29);g.fill();g.stroke();
+  g.fillStyle=rgba(col,.95);g.beginPath();g.arc(r*.1,0,r*.14,0,6.29);g.fill();}
+function turretSprite(c,s,D){
+  const dead=!s.alive,kind=s.kind,img=turretImg(c.side,dead?kind+'_dead':kind);
+  if(!img&&kind==='gen')return null;
+  const key=c.side+kind+(dead?'d':'a')+D+'|'+(img?(img.uid||(img.uid=++IMGUID)):'v');let e=TCACHE.get(key);if(e)return e;
+  const Q=2,S=Math.ceil(D*2.4),cv=document.createElement('canvas');cv.width=cv.height=S*Q;const g=cv.getContext('2d');g.scale(Q,Q);g.translate(S/2,S/2);
+  if(img){const rr=D/Math.max(img.naturalWidth,img.naturalHeight);g.drawImage(img,-img.naturalWidth*rr/2,-img.naturalHeight*rr/2,img.naturalWidth*rr,img.naturalHeight*rr);}
+  else vectorTurret(g,kind,dead,c.col,D/2);
+  e={cv,S,png:!!img};TCACHE.set(key,e);return e;}
+function drawShield(c){const r=c.shield,SC=CONFIG.shieldColor||c.col,up=clamp(c.shieldUp==null?1:c.shieldUp,0,1);if(up<=0)return;
+  const A=up*(.7+r*.3);ctx.save();pathPoly(c.shieldW);
+  if(CONFIG.shieldStyle==='smooth'){ctx.fillStyle=rgba(SC,(.025+r*.03)*A);ctx.fill();ctx.shadowColor=SC;ctx.shadowBlur=14;ctx.strokeStyle=rgba(SC,.4*A);ctx.lineWidth=2.5;ctx.stroke();ctx.shadowBlur=0;ctx.clip();
+    for(const q of ripples){if(q.c!==c)continue;const rr=(20+q.t*160)*q.s,g=ctx.createRadialGradient(q.x,q.y,0,q.x,q.y,rr);g.addColorStop(0,rgba('#ffffff',(1-q.t*2)*.6));g.addColorStop(1,rgba(SC,0));ctx.fillStyle=g;ctx.beginPath();ctx.arc(q.x,q.y,rr,0,6.29);ctx.fill();}ctx.restore();return;}
+  // ПЛАЗМОВА ПЛІВКА: ефект Френеля — прозора всередині, світиться до краю
+  ctx.clip();
+  const cx=c.x,cy=c.y;let rmax=0;for(const q of c.shieldW){const d=Math.hypot(q[0]-cx,q[1]-cy);if(d>rmax)rmax=d;}
+  const fg=ctx.createRadialGradient(cx,cy,rmax*.25,cx,cy,rmax);fg.addColorStop(0,rgba(SC,.01*A));fg.addColorStop(.75,rgba(SC,.05*A));fg.addColorStop(1,rgba(SC,.22*A));ctx.fillStyle=fg;ctx.fillRect(cx-rmax,cy-rmax*.8,rmax*2,rmax*1.6);
+  // внутрішнє світіння краю (широкий штрих, половина якого всередині кліпу)
+  ctx.lineCap='round';ctx.lineJoin='round';
+  for(const [w,a] of [[34,.06],[18,.1],[8,.18]]){ctx.strokeStyle=rgba(SC,a*A);ctx.lineWidth=w;pathPoly(c.shieldW);ctx.stroke();}
+  // біжучі хвилі світла по контуру
+  const PL=polyLen(c.shieldW);ctx.lineWidth=5;ctx.setLineDash([PL*.11,PL*.22]);ctx.lineDashOffset=-(T*140)%PL;ctx.strokeStyle=rgba('#ffffff',.22*A);pathPoly(c.shieldW);ctx.stroke();
+  ctx.setLineDash([PL*.05,PL*.28]);ctx.lineDashOffset=(T*95+PL*.4)%PL;ctx.lineWidth=3;ctx.strokeStyle=rgba(SC,.5*A);pathPoly(c.shieldW);ctx.stroke();ctx.setLineDash([]);
+  // мерехтіння плівки: тонкі дуги-інтерференція
+  for(let i=0;i<3;i++){const ph=T*.9+i*2.1,k=.3+.7*Math.abs(Math.sin(ph)),rr=rmax*(.35+.6*((ph*.17)%1));ctx.strokeStyle=rgba(SC,.045*A*k);ctx.lineWidth=1.2;ctx.beginPath();ctx.ellipse(cx,cy,rr,rr*.62,0,0,6.29);ctx.stroke();}
+  // влучання: спалах + інтерференційні кола, що розходяться по плівці
+  for(const q of ripples){if(q.c!==c)continue;const k=1-q.t*2,rr=(18+q.t*260)*q.s;
+    const g=ctx.createRadialGradient(q.x,q.y,0,q.x,q.y,rr*.5);g.addColorStop(0,rgba('#ffffff',k*.9));g.addColorStop(.4,rgba(SC,k*.5));g.addColorStop(1,rgba(SC,0));ctx.fillStyle=g;ctx.beginPath();ctx.arc(q.x,q.y,rr*.5,0,6.29);ctx.fill();
+    for(let j=0;j<3;j++){const rj=rr*(1-j*.22);if(rj<4)continue;ctx.strokeStyle=rgba(j?SC:'#ffffff',k*(.7-j*.2));ctx.lineWidth=2.2-j*.5;ctx.beginPath();ctx.arc(q.x,q.y,rj,0,6.29);ctx.stroke();}}
+  ctx.restore();
+  // зовнішній край
+  ctx.save();pathPoly(c.shieldW);ctx.shadowColor=SC;ctx.shadowBlur=16;ctx.strokeStyle=rgba(SC,(.35+r*.3)*A);ctx.lineWidth=1.8;ctx.stroke();ctx.shadowBlur=0;ctx.strokeStyle=rgba('#ffffff',.25*A);ctx.lineWidth=.7;ctx.stroke();
+  if(up<1){ctx.setLineDash([PL*up,PL]);ctx.lineDashOffset=0;ctx.strokeStyle=rgba('#ffffff',.9);ctx.lineWidth=3;pathPoly(c.shieldW);ctx.stroke();ctx.setLineDash([]);}
+  ctx.restore();}
 function pathPoly(poly){const n=poly.length;ctx.beginPath();const m=(a,b)=>[(a[0]+b[0])/2,(a[1]+b[1])/2];let p0=m(poly[n-1],poly[0]);ctx.moveTo(p0[0],p0[1]);
   for(let i=0;i<n;i++){const a=poly[i],b=poly[(i+1)%n],mm=m(a,b);ctx.quadraticCurveTo(a[0],a[1],mm[0],mm[1]);}ctx.closePath();}
 function drawCruiser(c){
   if(c.gone)return;
   if(!c.canvas||(!c.imgUsed&&IMG.ship[c.side].ok))buildShipCanvas(c);
-  ctx.save();ctx.translate(c.x,c.y);ctx.scale(c.dir,1);
+  const wk=c.warpIn<1?1-c.warpIn:c.warpOut>=0?Math.min(1,c.warpOut/.55):0;
+  if(wk>0){ // світлова смуга позаду (прибуття) / попереду (відліт)
+    ctx.save();ctx.translate(c.x,c.y);ctx.rotate(c.rot);ctx.scale(c.dir,1);const dirS=c.warpIn<1?-1:1,len=c.cw*(1.2+wk*2.5);const gr=ctx.createLinearGradient(0,0,dirS*len,0);gr.addColorStop(0,rgba('#ffffff',.5*wk));gr.addColorStop(.15,rgba(c.col,.35*wk));gr.addColorStop(1,rgba(c.col,0));
+    ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(-dirS*c.cw*.3,-c.ch*.22);ctx.lineTo(dirS*len,-c.ch*.04);ctx.lineTo(dirS*len,c.ch*.04);ctx.lineTo(-dirS*c.cw*.3,c.ch*.22);ctx.closePath();ctx.fill();
+    const fg=ctx.createRadialGradient(0,0,0,0,0,c.ch*.9);fg.addColorStop(0,rgba('#ffffff',.8*wk));fg.addColorStop(1,rgba(c.col,0));ctx.fillStyle=fg;ctx.beginPath();ctx.arc(0,0,c.ch*.9,0,6.29);ctx.fill();ctx.restore();}
+  ctx.save();ctx.translate(c.x,c.y);ctx.rotate(c.rot);ctx.scale(c.dir,1);ctx.globalAlpha=1;
   (c.engines||[-18,0,18].map(y=>({x:-150*K,y:y*K,r:7*K}))).forEach(en=>{const r=en.r||7*K;ctx.save();ctx.translate(en.x-r*.4-Math.random()*2,en.y);ctx.scale(1.7,1);const e=ctx.createRadialGradient(0,0,0,0,0,r*1.6);e.addColorStop(0,'#fff');e.addColorStop(.3,c.col);e.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=e;ctx.beginPath();ctx.arc(0,0,r*1.6,0,6.29);ctx.fill();ctx.restore();});
   ctx.drawImage(c.canvas,-c.cw/2,-c.ch/2,c.cw,c.ch);
   if(c.hull<.75){ctx.fillStyle='rgba(20,10,5,'+(.75-c.hull)+')';for(let k=0;k<7;k++){const s=Math.sin(k*7.3+c.side*3)*150*K,t=Math.cos(k*5.1+c.side)*22*K;ctx.beginPath();ctx.arc(s,t,(8+k*2)*K,0,6.29);ctx.fill();}}
   ctx.restore();
-  const TS=CONFIG.turretSize||{heavy:12,light:7,gen:14};
-  for(const s of c.subs){const p=subPos(c,s);ctx.save();ctx.translate(p.x,p.y);const D=TS[s.kind]*K,r=D/2;
-    const ang=s.kind==='gen'?0:(s.ang||(c.dir>0?0:Math.PI));const im=IMG.turret[s.kind],imd=IMG.turret[s.kind+'_dead'];
-    if(s.alive&&im&&im.ok){ctx.rotate(ang);const rr=D/Math.max(im.naturalWidth,im.naturalHeight);ctx.drawImage(im,-im.naturalWidth*rr/2,-im.naturalHeight*rr/2,im.naturalWidth*rr,im.naturalHeight*rr);
-      if(s.kind==='gen'){ctx.globalAlpha=.5+.3*Math.sin(T*6);ctx.strokeStyle=rgba(c.col,.9);ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,0,r*1.15,0,6.29);ctx.stroke();}}
-    else if(!s.alive&&imd&&imd.ok){ctx.rotate(ang);const rr=D/Math.max(imd.naturalWidth,imd.naturalHeight);ctx.drawImage(imd,-imd.naturalWidth*rr/2,-imd.naturalHeight*rr/2,imd.naturalWidth*rr,imd.naturalHeight*rr);}
-    else if(s.kind==='gen'){if(s.alive){const g=ctx.createRadialGradient(0,0,0,0,0,r*1.6);g.addColorStop(0,'#fff');g.addColorStop(.3,rgba(c.col,.95));g.addColorStop(1,rgba(c.col,0));ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r*1.6,0,6.29);ctx.fill();
-        ctx.strokeStyle='#0d1420';ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,0,r*.6,0,6.29);ctx.stroke();ctx.strokeStyle=rgba(c.col,.9);ctx.beginPath();ctx.arc(0,0,r*.95+Math.sin(T*6)*1,0,6.29);ctx.stroke();}
+  const TS=CONFIG.turretSize||{heavy:20,light:11,gen:18};
+  for(const s of c.subs){const p=subPos(c,s),D=Math.round(TS[s.kind]*K),r=D/2;
+    const ang=s.kind==='gen'?0:(s.ang==null?fwdAngle(c):s.ang),spr=turretSprite(c,s,D);
+    ctx.save();ctx.translate(p.x,p.y);
+    if(spr){ // готовий спрайт: жодних path-ів щокадру
+      ctx.rotate(ang);if(s.alive&&s.rec>0)ctx.translate(-r*.3*s.rec,0);
+      ctx.drawImage(spr.cv,-spr.S/2,-spr.S/2,spr.S,spr.S);
+      if(s.kind==='gen'){if(s.alive){ctx.globalAlpha=.5+.3*Math.sin(T*6);ctx.strokeStyle=rgba(c.col,.9);ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,r*1.15,0,6.29);ctx.stroke();}}
+      else if(s.alive){if(s.flash>0){const tipX=spr.png?r:r*2,f=Math.min(1,s.flash*9),fr=r*(s.kind==='heavy'?1.1:.8),g=ctx.createRadialGradient(tipX,0,0,tipX,0,fr);
+        g.addColorStop(0,'rgba(255,255,255,'+f+')');g.addColorStop(.35,rgba(c.col2,.7*f));g.addColorStop(1,rgba(c.col2,0));ctx.globalCompositeOperation='lighter';ctx.fillStyle=g;ctx.beginPath();ctx.arc(tipX,0,fr,0,6.29);ctx.fill();}}
+      else if(!spr.png){ctx.fillStyle=rgba('#ff6a30',.3+.3*Math.sin(T*7+s.lx));ctx.beginPath();ctx.arc(0,0,r*(s.kind==='heavy'?.45:.4),0,6.29);ctx.fill();}}
+    else{ // векторний генератор щита (без PNG) — анімований, одна штука на корабель
+      if(s.alive){const g=ctx.createRadialGradient(0,0,0,0,0,r*1.6);g.addColorStop(0,'#fff');g.addColorStop(.3,rgba(c.col,.95));g.addColorStop(1,rgba(c.col,0));ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r*1.6,0,6.29);ctx.fill();
+        ctx.strokeStyle='#0d1420';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,r*.6,0,6.29);ctx.stroke();ctx.strokeStyle=rgba(c.col,.9);ctx.beginPath();ctx.arc(0,0,r*.95+Math.sin(T*6)*1.5,0,6.29);ctx.stroke();}
       else{ctx.fillStyle='#1c1410';ctx.beginPath();ctx.arc(0,0,r*.7,0,6.29);ctx.fill();ctx.fillStyle=rgba('#ff6a30',.4+.3*Math.sin(T*9));ctx.beginPath();ctx.arc(0,0,r*.3,0,6.29);ctx.fill();}}
-    else if(s.kind==='heavy'){ctx.fillStyle=s.alive?'#2b3340':'#1a1210';ctx.strokeStyle=s.alive?'#0d1118':'#5a2a1e';ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,0,r,0,6.29);ctx.fill();ctx.stroke();
-      if(s.alive){ctx.rotate(ang);ctx.fillStyle='#4a5566';ctx.fillRect(-r*.2,-r*.55,r*2.2,r*.35);ctx.fillRect(-r*.2,r*.2,r*2.2,r*.35);ctx.fillStyle='#8a97aa';ctx.fillRect(-r*.45,-r*.45,r*.9,r*.9);ctx.fillStyle=rgba(c.col,.9);ctx.fillRect(-r*.2,-r*.12,r*.35,r*.24);}
-      else{ctx.fillStyle=rgba('#ff6a30',.3+.3*Math.sin(T*7+s.lx));ctx.beginPath();ctx.arc(0,0,r*.45,0,6.29);ctx.fill();}}
-    else{ctx.fillStyle=s.alive?'#1f2733':'#2a1410';ctx.strokeStyle=s.alive?'#0d1118':'#5a2a1e';ctx.lineWidth=.8;ctx.beginPath();ctx.arc(0,0,r,0,6.29);ctx.fill();ctx.stroke();
-      if(s.alive){ctx.rotate(ang);ctx.fillStyle='#6a788c';ctx.fillRect(-r*.2,-r*.5,r*2,r*.36);ctx.fillRect(-r*.2,r*.14,r*2,r*.36);ctx.fillStyle=rgba(c.col,.8);ctx.beginPath();ctx.arc(0,0,r*.3,0,6.29);ctx.fill();}
-      else{ctx.fillStyle=rgba('#ff6a30',.3+.3*Math.sin(T*8+s.ly));ctx.beginPath();ctx.arc(0,0,r*.4,0,6.29);ctx.fill();}}
     ctx.restore();}
-  if(c.alive&&!c.shieldDown){const r=c.shield,SC=CONFIG.shieldColor||c.col;ctx.save();pathPoly(c.shieldW);
-    ctx.fillStyle=rgba(SC,.025+r*.03);ctx.fill();
-    ctx.shadowColor=SC;ctx.shadowBlur=14+r*10;ctx.strokeStyle=rgba(SC,.22+r*.3);ctx.lineWidth=2+r*1.2;ctx.stroke();
-    ctx.shadowBlur=0;ctx.strokeStyle=rgba('#ffffff',.15+r*.2);ctx.lineWidth=.8;ctx.stroke();
-    ctx.clip();for(let i=ripples.length-1;i>=0;i--){const q=ripples[i];if(q.c!==c)continue;const rr=(20+q.t*160)*q.s,g=ctx.createRadialGradient(q.x,q.y,0,q.x,q.y,rr);g.addColorStop(0,rgba('#ffffff',(1-q.t*2)*.6));g.addColorStop(.6,rgba(SC,(1-q.t*2)*.5));g.addColorStop(1,rgba(SC,0));ctx.fillStyle=g;ctx.beginPath();ctx.arc(q.x,q.y,rr,0,6.29);ctx.fill();}
-    ctx.restore();}
+  if(c.alive&&!c.shieldDown)drawShield(c);
+  else if(c.alive&&c.shieldDown&&c.collapseT!=null&&T-c.collapseT<.6){ // короткий передсмертний спалах контуру щита
+    const k=(T-c.collapseT)/.6,SC=CONFIG.shieldColor||c.col;ctx.save();pathPoly(c.shieldW);ctx.shadowColor=SC;ctx.shadowBlur=18;
+    ctx.strokeStyle=rgba(SC,(1-k)*(Math.random()<.65?.9:.15));ctx.lineWidth=3*(1-k)+1;ctx.stroke();ctx.restore();}
 }
 function drawCraft(k){const c=cruisers[k.side],im=craftImg(k.side,k.type);ctx.save();ctx.translate(k.x,k.y);ctx.scale(CS,CS);
   if(k.type==='shieldship'&&k.bub>.15){const SC=CONFIG.shieldColor||c.col;ctx.strokeStyle=rgba(SC,.25+k.bub*.5);ctx.lineWidth=1.2;ctx.shadowColor=SC;ctx.shadowBlur=8;ctx.beginPath();ctx.arc(0,0,CFG.shieldship.bubble/CS,0,6.29);ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle=rgba(SC,.06*k.bub);ctx.fill();}
@@ -739,6 +952,7 @@ function drawCraft(k){const c=cruisers[k.side],im=craftImg(k.side,k.type);ctx.sa
     else{ctx.moveTo(10,0);ctx.lineTo(0,-3);ctx.lineTo(-4,-9);ctx.lineTo(-9,-9);ctx.lineTo(-8,-2);ctx.lineTo(-8,2);ctx.lineTo(-9,9);ctx.lineTo(-4,9);ctx.lineTo(0,3);}
     ctx.closePath();ctx.fill();ctx.stroke();}
   ctx.restore();}
+let dt_=1/60;
 function draw(){
   ctx.setTransform(1,0,0,1,0,0);const bg=IMG.bg;
   if(bg.ok){const r=Math.max(W/bg.naturalWidth,H/bg.naturalHeight);ctx.drawImage(bg,(W-bg.naturalWidth*r)/2,(H-bg.naturalHeight*r)/2,bg.naturalWidth*r,bg.naturalHeight*r);}
@@ -747,32 +961,67 @@ function draw(){
     const nr=ctx.createRadialGradient(W*.75,H*.3,0,W*.75,H*.3,W*.45);nr.addColorStop(0,'rgba(120,40,60,.14)');nr.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=nr;ctx.fillRect(0,0,W,H);
     for(const s of stars){ctx.fillStyle='rgba(235,240,255,'+(s.a*(0.7+0.3*Math.sin(T*s.tw+s.p)))+')';ctx.beginPath();ctx.arc(((s.x+T*s.d*.002)%1)*W,s.y*H,s.r,0,6.29);ctx.fill();}}
   if(warp>=0){ // гіперпростір: зорі витягуються у лінії від центру, спалах, нове поле
-    const k=warp<1.3?Math.pow(warp/1.3,2):Math.pow(1-(warp-1.3)/1.5,2);ctx.strokeStyle='rgba(200,225,255,.8)';ctx.lineCap='round';
-    for(const s of stars){const sx=((s.x+T*s.d*.002)%1)*W,sy=s.y*H,dx=sx-W/2,dy=sy-H/2,l=k*420;ctx.lineWidth=s.r*(1+k*2);ctx.globalAlpha=s.a*(.4+k*.6);ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx+dx/W*l*2,sy+dy/H*l*2);ctx.stroke();}
-    ctx.globalAlpha=1;const fl=Math.max(0,1-Math.abs(warp-1.3)/.45);if(fl>0){ctx.fillStyle='rgba(230,240,255,'+fl+')';ctx.fillRect(0,0,W,H);}}
+    const k=warp<1.6?Math.pow(warp/1.6,2):Math.pow(1-(warp-1.6)/1.6,2);ctx.strokeStyle='rgba(200,225,255,.8)';ctx.lineCap='round';
+    for(const s of stars){const sx=((s.x+T*s.d*.002)%1)*W,sy=s.y*H,dx=sx-W/2,dy=sy-H/2,l=k*900;ctx.lineWidth=s.r*(1+k*2);ctx.globalAlpha=s.a*(.4+k*.6);ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx+dx/W*l*2.5,sy+dy/H*l*.5);ctx.stroke();}
+    ctx.globalAlpha=1;const fl=Math.max(0,1-Math.abs(warp-1.6)/.4);if(fl>0){ctx.fillStyle='rgba(230,240,255,'+fl+')';ctx.fillRect(0,0,W,H);}}
   const shx=shake>0?rand(-shake,shake):0,shy=shake>0?rand(-shake,shake):0;
   ctx.setTransform(sc,0,0,sc,ox+shx,oy+shy);
   cruisers.forEach(drawCruiser);
-  for(let i=frags.length-1;i>=0;i--){const f=frags[i];f.life-=1/60;if(f.life<=0){frags.splice(i,1);continue;}f.x+=f.vx/60;f.y+=f.vy/60;f.rot+=f.vr/60;f.vx*=.995;f.vy*=.995;
+  for(let i=frags.length-1;i>=0;i--){const f=frags[i];f.life-=dt_;if(f.life<=0){frags.splice(i,1);continue;}f.x+=f.vx*dt_;f.y+=f.vy*dt_;f.rot+=f.vr*dt_;f.vx*=.995;f.vy*=.995;
     ctx.save();ctx.globalAlpha=Math.min(1,f.life/2);ctx.translate(f.x,f.y);ctx.rotate(f.rot);ctx.scale(f.c.dir,1);ctx.drawImage(f.c.canvas,f.sx*2,f.sy*2,f.sw*2,f.sh*2,-f.sw/2,-f.sh/2,f.sw,f.sh);ctx.restore();
     if(f.burn&&Math.random()<.3)parts.push({x:f.x+rand(-f.sw/3,f.sw/3),y:f.y,vx:rand(-8,8),vy:rand(-20,-5),life:rand(.4,1),max:1,r:rand(2,5),col:Math.random()<.5?'#ff8040':'#666',smoke:Math.random()<.5});}
-  for(let i=ripples.length-1;i>=0;i--){const r=ripples[i];r.t+=1/60;if(r.t>.5)ripples.splice(i,1);}
+  for(let i=ripples.length-1;i>=0;i--){const r=ripples[i];r.t+=dt_;if(r.t>.5)ripples.splice(i,1);}
   for(const b of bolts){const l=Math.hypot(b.vx,b.vy),nx=b.vx/l,ny=b.vy/l;
     ctx.strokeStyle=b.col;ctx.lineWidth=b.w;ctx.shadowColor=b.col;ctx.shadowBlur=b.kind==='turbo'?16:6;ctx.lineCap='round';
     ctx.beginPath();ctx.moveTo(b.x-nx*b.len,b.y-ny*b.len);ctx.lineTo(b.x,b.y);ctx.stroke();
     if(b.kind==='turbo'){ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(b.x-nx*b.len*.6,b.y-ny*b.len*.6);ctx.lineTo(b.x,b.y);ctx.stroke();}}
   ctx.shadowBlur=0;
+  for(let i=rings.length-1;i>=0;i--){const q=rings[i];q.life-=dt_;if(q.life<=0){rings.splice(i,1);continue;}const k=1-q.life/q.max,rr=q.r0+(q.r1-q.r0)*Math.pow(k,.6);ctx.strokeStyle=rgba(q.col,(1-k)*.8);ctx.lineWidth=q.w*(1-k*.6);ctx.beginPath();ctx.arc(q.x,q.y,rr,0,6.29);ctx.stroke();}
+  for(let i=debris.length-1;i>=0;i--){const q=debris[i];q.life-=dt_;if(q.life<=0){debris.splice(i,1);continue;}q.x+=q.vx*dt_;q.y+=q.vy*dt_;q.vx*=.97;q.vy*=.97;const a=Math.atan2(q.vy,q.vx);ctx.strokeStyle=rgba(q.col,q.life/q.max);ctx.lineWidth=q.spin?1.6:1;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(q.x-Math.cos(a)*q.len,q.y-Math.sin(a)*q.len);ctx.stroke();}
+  for(let i=pods.length-1;i>=0;i--){const q=pods[i];q.life-=dt_;if(q.life<=0||q.x<-100||q.x>WW+100){pods.splice(i,1);continue;}q.x+=q.vx*dt_;q.y+=q.vy*dt_;q.t+=dt_;
+    ctx.save();ctx.translate(q.x,q.y);ctx.rotate(Math.atan2(q.vy,q.vx));ctx.fillStyle='#d8dde6';ctx.strokeStyle='#3a4250';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(0,0,7,3.5,0,0,6.29);ctx.fill();ctx.stroke();
+    ctx.fillStyle=rgba('#ffffff',.5+.5*Math.sin(q.t*8));ctx.beginPath();ctx.arc(-7,0,1.6,0,6.29);ctx.fill();ctx.fillStyle=rgba(q.col,.6);ctx.beginPath();ctx.arc(2,0,1.4,0,6.29);ctx.fill();ctx.restore();}
   crafts.forEach(drawCraft);
-  for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.life-=1/60;if(p.life<=0){parts.splice(i,1);continue;}p.x+=p.vx/60;p.y+=p.vy/60;const a=p.life/p.max;
+  for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.life-=dt_;if(p.life<=0){parts.splice(i,1);continue;}p.x+=p.vx*dt_;p.y+=p.vy*dt_;const a=p.life/p.max;
     ctx.globalAlpha=p.smoke?a*.35:a;ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,Math.max(.1,p.flash?p.r*a:p.r*(p.smoke?(2-a):1)),0,6.29);ctx.fill();}
   ctx.globalAlpha=1;if(shake>0)shake*=.9;if(shake<.3)shake=0;
+  if(DBG.on)drawDebug();
 }
+function drawDebug(){ctx.lineWidth=1;for(const c of cruisers){if(c.gone)continue;ctx.strokeStyle='rgba(255,80,80,.8)';ctx.beginPath();c.hullW.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.closePath();ctx.stroke();
+    ctx.strokeStyle='rgba(80,255,120,.8)';ctx.beginPath();c.shieldW.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.closePath();ctx.stroke();
+    (c.engines||[]).forEach(e=>{ctx.strokeStyle='#ff0';ctx.strokeRect(c.x+e.x*c.dir-3,c.y+e.y-3,6,6);});for(const s of c.subs){const q=subPos(c,s);ctx.strokeStyle=s.alive?'#0ff':'#f00';ctx.strokeRect(q.x-4,q.y-4,8,8);}}
+  ctx.font='9px monospace';for(const k of crafts){ctx.fillStyle=k.side?'#ffb0a0':'#a0d8ff';ctx.fillText(k.role+(k.state?'/'+k.state:'')+' '+Math.ceil(k.hp),k.x+10,k.y-8);if(k.fx!=null){ctx.strokeStyle='rgba(255,255,0,.4)';ctx.beginPath();ctx.moveTo(k.x,k.y);ctx.lineTo(k.fx,k.fy);ctx.stroke();}}
+  ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(W/2-180,110,360,138);ctx.fillStyle='#8f8';ctx.font='11px monospace';const rl=[`T=${T.toFixed(1)} speed=${DBG.speed} pause=${DBG.pause} run=${run} warp=${warp.toFixed(2)}`,`real=${load.progress.toFixed(3)} battle.p=${battle.p.toFixed(3)} disp=${load.disp.toFixed(3)} est=${load.est.toFixed(0)}s DM=${DM.toFixed(2)}`,
+    ...cruisers.map(c=>`${c.name}: ${c.tactic?c.tactic.name:'-'} H${(c.hull*100)|0} S${c.shieldDown?'X':(c.shield*100)|0} q=${c.queue.length} hangar=${Object.entries(c.hangar).map(e=>e[0][0]+e[1]).join(' ')}`),
+    `crafts=${crafts.length} bolts=${bolts.length} parts=${parts.length} pods=${pods.length} ${JSON.stringify(crafts.reduce((a,k)=>{a[k.role]=(a[k.role]||0)+1;return a;},{}))}`.slice(0,70),
+    Snd.report().slice(0,62),
+    'D Space +/- 1-9 N R T K E H W L'];rl.forEach((t,i)=>ctx.fillText(t,W/2-174,128+i*17));}
 
 /* ================= ЦИКЛ ================= */
 let last=performance.now();
-function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;
-  updLoad(dt);cruisers.forEach(c=>updCruiser(c,dt));for(let i=crafts.length-1;i>=0;i--)updCraft(crafts[i],i,dt);
-  separate(dt);updBolts(dt);flushRadio(dt);updHUD(dt);draw();requestAnimationFrame(frame);}
+// Симуляція відокремлена від малювання: коли вкладка/вікно сховані, requestAnimationFrame зупиняється,
+// тому бій далі рахує таймер (Web Worker — його браузер не гальмує; запасний варіант — setInterval) без малювання.
+function tick(now,vis){let dt=Math.min(vis?.05:2,Math.max(0,(now-last)/1000));last=now;if(DBG.pause)dt=0;dt*=DBG.speed;
+  const steps=Math.max(1,Math.ceil(dt/.034));const sd=dt/steps;
+  for(let k=0;k<steps;k++){T+=sd;dt_=sd;updLoad(sd);cruisers.forEach(c=>updCruiser(c,sd));for(let i=crafts.length-1;i>=0;i--)updCraft(crafts[i],i,sd);separate(sd);updBolts(sd);}
+  dt_=dt;flushRadio(dt);updHUD(dt);if(vis&&!DBG.nodraw)draw();}
+function frame(now){tick(now,true);requestAnimationFrame(frame);}
+function bgTick(){if(document.hidden)tick(performance.now(),false);}
+try{const w=new Worker(URL.createObjectURL(new Blob(['setInterval(function(){postMessage(0)},100)'],{type:'application/javascript'})));w.onmessage=bgTick;w.onerror=()=>{};}catch(e){}
+setInterval(bgTick,250); // запасний таймер, якщо Worker недоступний
+addEventListener('keydown',e=>{const k=e.key;const L=loser;
+  if(k==='d'||k==='D'||k==='в'||k==='В'){DBG.on=!DBG.on;}
+  else if(k===' '){DBG.pause=!DBG.pause;e.preventDefault();}
+  else if(k==='+'||k==='='){DBG.speed=Math.min(8,DBG.speed*2);}else if(k==='-'){DBG.speed=Math.max(.25,DBG.speed/2);}
+  else if(k>='1'&&k<='9'){const tp=+k/10;if(run===0){load.progress=Math.max(load.progress,tp);battle.virt=tp;battle.lastReal=tp;if(!load.gmod){load.gmod=true;load.total=100;load.needed=Math.round(100-tp*100);}}else runT=T-tp*battle.D;load.disp=tp;}
+  else if(k==='n'||k==='N'){if(warp<0)startWarp();}
+  else if(k==='r'||k==='R'){warp=-1;run--;restartBattle();}
+  else if(k==='t'||k==='T'){const keys=Object.keys(TACTICS);DBG.tacIdx=(DBG.tacIdx+1)%(keys.length*keys.length);CONFIG.tactics=[keys[DBG.tacIdx%keys.length],keys[(DBG.tacIdx/keys.length|0)]];run=-1;warp=-1;restartBattle();}
+  else if(k==='l'||k==='L'){Object.keys(ASSETS.sounds).forEach((n,i)=>setTimeout(()=>{console.log('[snd] '+n+' → '+Snd.st[n]);Snd.play(n,1,null,true);},i*1500));}
+  else if(k==='k'||k==='K'){if(L&&!L.shieldDown)shieldCollapse(L);}
+  else if(k==='e'||k==='E'){if(L&&!L.evac){L.evac=true;L.podsLeft=14;radio(L.cs,'Усім залишити корабель!',L.col);}}
+  else if(k==='h'||k==='H'){DBG.hud=!DBG.hud;document.querySelectorAll('#top,#radio,#bottom,#mute').forEach(el=>el.style.display=DBG.hud?'':'none');}
+  else if(k==='w'||k==='W'){CONFIG.winner=winner?1-winner.side:0;run=-1;warp=-1;restartBattle();}});
 
 /* ================= КОЛБЕКИ GARRY'S MOD ================= */
 window.GameDetails=function(servername,serverurl,mapname,maxplayers,steamid,gamemode){load.gmod=true;
@@ -784,9 +1033,9 @@ window.SetStatusChanged=function(s){load.status=s;load.file='';};
 
 /* ================= СТАРТ ================= */
 for(let i=0;i<420;i++)stars.push({x:Math.random(),y:Math.random(),r:rand(.3,1.7),a:rand(.15,.9),tw:rand(1,4),p:rand(0,6),d:rand(.5,2)});
-cruisers.push(mkCruiser(0),mkCruiser(1));resize();cruisers.forEach(c=>{c.hullW=c.hullL.map(q=>[c.x+q[0]*c.dir,c.y+q[1]]);c.shieldW=c.shieldL.map(q=>[c.x+q[0]*c.dir,c.y+q[1]]);});
+cruisers.push(mkCruiser(0),mkCruiser(1));resize();cruisers.forEach(c=>{c.hullW=c.hullL.map(q=>{const w=wp(c,q[0],q[1]);return [w.x,w.y];});c.shieldW=c.shieldL.map(q=>{const w=wp(c,q[0],q[1]);return [w.x,w.y];});});
 cruisers.forEach((c,i)=>{document.getElementById('n'+i).textContent=c.name;});
-planBattle();Snd.init();requestAnimationFrame(frame);
+setRot();planBattle();Snd.init();requestAnimationFrame(frame);
 </script>
 </body>
 </html>
