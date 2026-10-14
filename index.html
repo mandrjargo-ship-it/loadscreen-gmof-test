@@ -650,7 +650,7 @@ function updCruiser(c,dt){
         const err=turnSub(c,s,Math.atan2(ty-q.y,tx-q.x),TT.light,dt);
         if(s.cd<=0&&err<.3){
           // Збільшено урон зеніткам з 0.64 до 2.8, підвищено швидкість пострілу та перезарядку
-          bolt(q.x,q.y,s.ang+rand(-.1,.1),700,c.side,'light',2.8,0,c.col2,.7,null);
+          bolt(q.x,q.y,s.ang+rand(-.1,.1),700,c.side,'light',1.0,0,c.col2,.7,null);
           Snd.play('light',.18,q.x);s.rec=.6;s.flash=.09;s.cd=rand(.18,.32);
         }}
       else{turnSub(c,s,fwdAngle(c),2,dt);if(s.cd<=0)s.cd=.15;}}}
